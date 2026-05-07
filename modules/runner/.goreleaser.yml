@@ -1,0 +1,32 @@
+version: 2
+
+monorepo:
+  # Strips this prefix from the git tag to extract the semver.
+  # Tag modules/runner/v0.3.1 → version 0.3.1
+  tag_prefix: "modules/runner/"
+  dir: modules/runner
+
+# No executable entrypoints yet. When you add a cmd/ package, replace the
+# skip flag with the actual build targets, for example:
+#
+# builds:
+#   - id: runner
+#     main: ./cmd/runner
+#     binary: runner
+#     goos: [linux, darwin]
+#     goarch: [amd64, arm64]
+builds:
+  - skip: true
+
+checksum:
+  disable: true
+
+release:
+  # release-please creates the GitHub release with the changelog body.
+  # GoReleaser will append build artifacts without overwriting the notes.
+  mode: keep-existing
+
+changelog:
+  # release-please maintains CHANGELOG.md and writes the GitHub release notes;
+  # disable GoReleaser's changelog to avoid overwriting them.
+  disable: true

@@ -1,0 +1,39 @@
+name: GoReleaser
+
+on:
+  push:
+    tags:
+      - 'modules/*/v[0-9]*'
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve module path from tag
+        id: meta
+        run: |
+          # Tag format: modules/<name>/v<semver>  e.g. modules/runner/v0.3.1
+          # Extract the module directory: modules/<name>
+          TAG="${{ github.ref_name }}"
+          MODULE=$(echo "$TAG" | sed 's|/v[0-9].*||')
+          echo "module=${MODULE}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ steps.meta.outputs.module }}/go.mod
+          cache-dependency-path: ${{ steps.meta.outputs.module }}/go.sum
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: ~> v2
+          args: release --clean --config ${{ steps.meta.outputs.module }}/.goreleaser.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
