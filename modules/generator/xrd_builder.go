@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ResourceMeta contains the necessary information to build a CompositeResourceDefinition.
+// Contains the fields needed to generate a CompositeResourceDefinition.
 type ResourceMeta struct {
 	PackagePath string // Go package containing the type to be converted into an XRD
 	TypeName    string // Name of the Go type to be converted into an XRD
@@ -25,7 +25,7 @@ type ResourceMeta struct {
 
 // It does the following things:
 //  1. Validates the required input
-//  2. Chooses a version
+//  2. Selects the XRD API version name, defaulting to "v1alpha1" if none is provided
 //  3. Asks ExtractOpenAPISchema to get the OpenAPI schema for the specified Go type
 //  4. Takes only the 'spec' part of the schema (desired state) and wraps it in a top-level schema with 'spec' and 'status' properties.
 func BuildCompositeResourceDefinition(resource ResourceMeta) (*apiextensionsv2.CompositeResourceDefinition, error) {
