@@ -20,8 +20,8 @@ graph TD
         MarshalYAML["MarshalXRDToYAML()"]
     end
 
-    BuildCRD -->|"calls"| ExtractTypeInfo
-    BuildCRD -->|"result passed to"| MarshalYAML
+    BuildCRD -->|"get OpenAPI schema + printer columns"| ExtractTypeInfo
+    BuildCRD -->|"serialize assembled XRD to YAML"| MarshalYAML
 
     ExtractTypeInfo -->|"calls"| newCRDParser
 
