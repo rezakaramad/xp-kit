@@ -16,55 +16,17 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
-	"golang.org/x/tools/go/packages"
 	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sigs.k8s.io/controller-tools/pkg/crd"
-	"sigs.k8s.io/controller-tools/pkg/loader"
-	"sigs.k8s.io/controller-tools/pkg/markers"
 )
 
 // ExtractOpenAPISchema loads the Go package, inspects the specified struct,
 // understand its validation markers, and produces an OpenAPI v3 schema
 // that captures the desired state shape and constraints of the resource.
 func ExtractOpenAPISchema(packagePath, typeName string) (*extv1.JSONSchemaProps, error) {
-	// Find the directory on disk where the package lives
-	// E.g., "github.com/rezakaramad/crossplane-toolkit/types/tenant" → "/home/reza/projects/crossplane-toolkit/types/tenant"
-	moduleDir, err := findModuleDir(packagePath)
+	parser, roots, err := newCRDParser(packagePath)
 	if err != nil {
-		return nil, fmt.Errorf("finding module dir: %w", err)
-	}
-
-	// Tells the Go loader to start from here.
-	config := &packages.Config{Dir: moduleDir}
-	// Returns the root packages.
-	roots, err := loader.LoadRootsWithConfig(config, packagePath)
-	if err != nil {
-		return nil, fmt.Errorf("loading package %q: %w", packagePath, err)
-	}
-
-	// Check if we found any packages at the specified path.
-	if len(roots) == 0 {
-		return nil, fmt.Errorf("no packages found for path %q", packagePath)
-	}
-
-	// Give the tool the ability to parse Kubebuilder markers and generate OpenAPI schemas.
-	// Set up the controller-tools parser to extract markers and generate schemas
-	registry := &markers.Registry{}
-	generator := crd.Generator{}
-	if err := generator.RegisterMarkers(registry); err != nil {
-		return nil, fmt.Errorf("registering markers: %w", err)
-	}
-
-	// The parser reads the package and builds the schema
-	parser := &crd.Parser{
-		Collector: &markers.Collector{Registry: registry}, // Reads kubebuilder markers comments
-		Checker:   &loader.TypeChecker{},                  // Understands Go types and struct fields
-	}
-	crd.AddKnownTypes(parser) // Gives the parser built-in Kubernetes type knowledge too, like metav1.ObjectMeta, metav1.Time, etc.
-
-	// Tell the parser to process all root packages.
-	for _, root := range roots {
-		parser.NeedPackage(root)
+		return nil, err
 	}
 
 	// This creates a type identifier for the specific struct we want to generate the schema for.

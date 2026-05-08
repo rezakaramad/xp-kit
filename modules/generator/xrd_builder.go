@@ -12,16 +12,18 @@ import (
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // Contains the fields needed to generate a CompositeResourceDefinition.
 type ResourceMeta struct {
-	PackagePath string // Go package containing the type to be converted into an XRD
-	TypeName    string // Name of the Go type to be converted into an XRD
-	Group       string // API group for the XRD
-	Version     string // API version for the XRD (optional, defaults to "v1alpha1")
-	Plural      string // Plural name for the XRD
-	Scope       string // XRD scope: "Namespaced" or "Cluster" (optional, defaults to "Namespaced")
+	PackagePath           string // Go package containing the type to be converted into an XRD
+	TypeName              string // Name of the Go type to be converted into an XRD
+	Group                 string // API group for the XRD
+	Version               string // API version for the XRD (optional, defaults to "v1alpha1")
+	Plural                string // Plural name for the XRD
+	Scope                 string // XRD scope: "Namespaced" or "Cluster" (optional, defaults to "Namespaced")
+	DefaultCompositionRef string // Name of the default Composition to use when none is specified on the XR
 }
 
 // It does the following things:
@@ -56,6 +58,11 @@ func BuildCompositeResourceDefinition(resource ResourceMeta) (*apiextensionsv2.C
 		return nil, fmt.Errorf("extracting schema: %w", err)
 	}
 
+	printerColumns, err := ExtractAdditionalPrinterColumns(resource.PackagePath, resource.Group, resource.TypeName, version)
+	if err != nil {
+		return nil, fmt.Errorf("extracting additional printer columns: %w", err)
+	}
+
 	// Gets the 'spec' part of the schema, which represents the desired state of the resource.
 	specSchema, ok := schema.Properties["spec"]
 	if !ok {
@@ -63,8 +70,13 @@ func BuildCompositeResourceDefinition(resource ResourceMeta) (*apiextensionsv2.C
 	}
 
 	// Wrap the 'spec' schema in a top-level schema.
+	// Copy root-level XValidations (CEL rules) and XPreserveUnknownFields from the
+	// parsed root schema so markers placed on the XR type itself are preserved.
 	wrappedSchema := apiextv1.JSONSchemaProps{
-		Type: "object",
+		Type:                   "object",
+		Required:               []string{"spec"},
+		XValidations:           schema.XValidations,
+		XPreserveUnknownFields: schema.XPreserveUnknownFields,
 		Properties: map[string]apiextv1.JSONSchemaProps{
 			"spec": specSchema,
 		},
@@ -103,11 +115,18 @@ func BuildCompositeResourceDefinition(resource ResourceMeta) (*apiextensionsv2.C
 				Kind:   kind,
 				Plural: plural,
 			},
+			DefaultCompositionRef: func() *apiextensionsv2.CompositionReference {
+				if resource.DefaultCompositionRef == "" {
+					return nil
+				}
+				return &apiextensionsv2.CompositionReference{Name: resource.DefaultCompositionRef}
+			}(),
 			Versions: []apiextensionsv2.CompositeResourceDefinitionVersion{
 				{
-					Name:          version,
-					Served:        true,
-					Referenceable: true,
+					Name:                     version,
+					Served:                   true,
+					Referenceable:            true,
+					AdditionalPrinterColumns: printerColumns,
 					Schema: &apiextensionsv2.CompositeResourceValidation{
 						OpenAPIV3Schema: runtime.RawExtension{
 							Raw: rawSchema,
@@ -117,4 +136,33 @@ func BuildCompositeResourceDefinition(resource ResourceMeta) (*apiextensionsv2.C
 			},
 		},
 	}, nil
+}
+
+// ExtractAdditionalPrinterColumns asks controller-tools to build the CRD for the
+// requested group-kind, then returns the printer columns for the selected version.
+func ExtractAdditionalPrinterColumns(packagePath, group, kind, version string) ([]apiextv1.CustomResourceColumnDefinition, error) {
+	parser, _, err := newCRDParser(packagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	groupKind := schema.GroupKind{Group: group, Kind: kind}
+	parser.NeedCRDFor(groupKind, nil)
+
+	crd, ok := parser.CustomResourceDefinitions[groupKind]
+	if !ok {
+		return nil, fmt.Errorf("CRD not found for %s.%s", kind, group)
+	}
+
+	for _, ver := range crd.Spec.Versions {
+		if ver.Name == version {
+			return ver.AdditionalPrinterColumns, nil
+		}
+	}
+
+	if len(crd.Spec.Versions) == 1 {
+		return crd.Spec.Versions[0].AdditionalPrinterColumns, nil
+	}
+
+	return nil, nil
 }

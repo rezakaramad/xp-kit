@@ -2,6 +2,7 @@ package xtenant
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Phase represents the lifecycle state of an XTenant.
@@ -20,15 +21,33 @@ const (
 // XTenant is the strongly-typed representation of the Tenant Composite Resource.
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:validation:XValidation:rule="self.metadata.name.size() <= 20",message="Tenant name must be 20 characters or less"
+// +kubebuilder:validation:XValidation:rule="self.metadata.name.matches('^[a-z0-9]+(-[a-z0-9]+)*$')",message="Tenant name must be lowercase alphanumeric with hyphens"
+// +kubebuilder:validation:XValidation:rule="!self.metadata.name.matches('(^|-)(dev|test|stage|prod)(-|$)')",message="Tenant name must not include reserved environment segments (dev, test, stage, prod)"
+// +kubebuilder:validation:XValidation:rule="oldSelf == null || (self.spec.dnsName == oldSelf.spec.dnsName && self.spec.owner == oldSelf.spec.owner)",message="spec.dnsName and spec.owner are immutable after creation"
+// +kubebuilder:validation:XValidation:rule="oldSelf == null || !oldSelf.spec.approved || self.spec.approved",message="spec.approved cannot be set back to false once approved"
+// +kubebuilder:printcolumn:name="Tenant",type="string",JSONPath=".metadata.name"
+// +kubebuilder:printcolumn:name="DNS",type="string",JSONPath=".spec.dnsName"
+// +kubebuilder:printcolumn:name="Team",type="string",JSONPath=".spec.owner.team"
+// +kubebuilder:printcolumn:name="Resources",type="integer",JSONPath=".status.rendered.resources"
+// +kubebuilder:printcolumn:name="Approved",type="boolean",JSONPath=".spec.approved"
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase"
 type XTenant struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              XTenantSpec   `json:"spec"`
-	Status            XTenantStatus `json:"status,omitempty"`
+	Spec              XTenantSpec `json:"spec"`
+
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Status XTenantStatus `json:"status,omitempty"`
 }
 
 // XTenantSpec defines the desired state of an XTenant.
 type XTenantSpec struct {
+	// crossplane is reserved for Crossplane-specific implementation details.
+	//
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Crossplane runtime.RawExtension `json:"crossplane,omitempty"`
+
 	// dnsName is the base DNS label for the tenant. Immutable after creation.
 	//
 	// +kubebuilder:validation:MinLength=1
@@ -95,8 +114,10 @@ type OptionsSpec struct {
 
 // XTenantStatus defines the observed state of an XTenant.
 type XTenantStatus struct {
-	Phase    Phase           `json:"phase,omitempty"`
-	Rendered *RenderedStatus `json:"rendered,omitempty"`
+	Phase              Phase              `json:"phase,omitempty"`
+	Rendered           *RenderedStatus    `json:"rendered,omitempty"`
+	Conditions         []metav1.Condition `json:"conditions,omitempty"`
+	ObservedGeneration int64              `json:"observedGeneration,omitempty"`
 }
 
 // RenderedStatus summarises the resources exported to Git.

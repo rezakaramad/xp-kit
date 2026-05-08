@@ -33,7 +33,8 @@ func main() {
 	group := flag.String("group", "", "Crossplane API group (required), e.g. idp.rezakara.demo")
 	version := flag.String("version", "v1alpha1", "API version (default: v1alpha1)")
 	plural := flag.String("plural", "", "Plural resource name; defaults to lowercase kind + 's'")
-	scope  := flag.String("scope", "Namespaced", "XRD scope: Namespaced or Cluster")
+	scope := flag.String("scope", "Namespaced", "XRD scope: Namespaced or Cluster")
+	defaultComposition := flag.String("default-composition", "", "Name of the default Composition (sets defaultCompositionRef)")
 	output := flag.String("output", "", "Write YAML to this file (default: stdout)")
 	flag.Parse()
 
@@ -45,12 +46,13 @@ func main() {
 	}
 
 	xrd, err := generator.BuildCompositeResourceDefinition(generator.ResourceMeta{
-		PackagePath: *pkg,
-		TypeName:    *typeName,
-		Group:       *group,
-		Version:     *version,
-		Plural:      *plural,
-		Scope:       *scope,
+		PackagePath:           *pkg,
+		TypeName:              *typeName,
+		Group:                 *group,
+		Version:               *version,
+		Plural:                *plural,
+		Scope:                 *scope,
+		DefaultCompositionRef: *defaultComposition,
 	})
 	if err != nil {
 		log.Fatalf("generate XRD: %v", err)
