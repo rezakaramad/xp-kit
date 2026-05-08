@@ -4,11 +4,10 @@
 graph TD
     subgraph xrd_builder.go
         BuildCRD["BuildCompositeResourceDefinition()"]
-        ExtractPrinter["ExtractAdditionalPrinterColumns()"]
     end
 
     subgraph schema_extractor.go
-        ExtractSchema["ExtractOpenAPISchema()"]
+        ExtractTypeInfo["ExtractTypeInfo()"]
         findModuleDir["findModuleDir()"]
         findModuleRoot["findModuleRoot()"]
         goModCache["goModCache()"]
@@ -24,12 +23,10 @@ graph TD
         MarshalYAML["MarshalXRDToYAML()"]
     end
 
-    BuildCRD -->|"calls"| ExtractSchema
-    BuildCRD -->|"calls"| ExtractPrinter
+    BuildCRD -->|"calls"| ExtractTypeInfo
     BuildCRD -->|"result passed to"| MarshalYAML
 
-    ExtractSchema -->|"calls"| newCRDParser
-    ExtractPrinter -->|"calls"| newCRDParser
+    ExtractTypeInfo -->|"calls"| newCRDParser
 
     newCRDParser -->|"calls"| findModuleDir
 

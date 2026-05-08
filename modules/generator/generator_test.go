@@ -13,13 +13,14 @@ import (
 
 const testPackagePath = "github.com/rezakaramad/crossplane-toolkit/modules/generator/testdata/xsimple"
 
-// TestExtractOpenAPISchema_Fields verifies that the schema extractor finds the expected
+// TestExtractTypeInfo_Fields verifies that the schema extractor finds the expected
 // fields and kubebuilder marker constraints on the XSimple test fixture.
-func TestExtractOpenAPISchema_Fields(t *testing.T) {
-	schema, err := ExtractOpenAPISchema(testPackagePath, "XSimple")
+func TestExtractTypeInfo_Fields(t *testing.T) {
+	info, err := ExtractTypeInfo(testPackagePath, "test.example.org", "XSimple", "v1alpha1")
 	if err != nil {
-		t.Fatalf("ExtractOpenAPISchema: %v", err)
+		t.Fatalf("ExtractTypeInfo: %v", err)
 	}
+	schema := info.Schema
 
 	spec, ok := schema.Properties["spec"]
 	if !ok {

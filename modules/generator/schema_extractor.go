@@ -4,7 +4,7 @@ package generator
 // E.g., "github.com/rezakaramad/crossplane-toolkit/types/tenant" and "Tenant"
 // It uses controller-tools to parse the Go package,
 // extract the struct definition and kubebuilder markers,
-// and produces an OpenAPI v3 schema that reflects the struct fields and validation constraints.
+// and produces the OpenAPI v3 schema and additionalPrinterColumns in a single parser pass.
 // Without this module, users would have to manually write the OpenAPI schema for their XRDs, which is error-prone and hard to maintain.
 
 import (
@@ -17,13 +17,20 @@ import (
 
 	"golang.org/x/mod/modfile"
 	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	k8sschema "k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-tools/pkg/crd"
 )
 
-// ExtractOpenAPISchema loads the Go package, inspects the specified struct,
-// understand its validation markers, and produces an OpenAPI v3 schema
-// that captures the desired state shape and constraints of the resource.
-func ExtractOpenAPISchema(packagePath, typeName string) (*extv1.JSONSchemaProps, error) {
+// TypeInfo holds the results of a single parser pass over a Go type:
+// the OpenAPI schema and the additionalPrinterColumns.
+type TypeInfo struct {
+	Schema         *extv1.JSONSchemaProps
+	PrinterColumns []extv1.CustomResourceColumnDefinition
+}
+
+// ExtractTypeInfo loads the Go package once and extracts both the OpenAPI schema
+// and the additionalPrinterColumns for the specified type in a single parser pass.
+func ExtractTypeInfo(packagePath, group, typeName, version string) (*TypeInfo, error) {
 	parser, roots, err := newCRDParser(packagePath)
 	if err != nil {
 		return nil, err
@@ -60,7 +67,23 @@ func ExtractOpenAPISchema(packagePath, typeName string) (*extv1.JSONSchemaProps,
 		return nil, fmt.Errorf("flattened schema not found for type %q", typeName)
 	}
 
-	return &schema, nil
+	// Printer columns extraction — reuse the same parser, no second package load.
+	var printerColumns []extv1.CustomResourceColumnDefinition
+	groupKind := k8sschema.GroupKind{Group: group, Kind: typeName}
+	parser.NeedCRDFor(groupKind, nil)
+	if crdObj, ok := parser.CustomResourceDefinitions[groupKind]; ok {
+		for _, ver := range crdObj.Spec.Versions {
+			if ver.Name == version {
+				printerColumns = ver.AdditionalPrinterColumns
+				break
+			}
+		}
+		if printerColumns == nil && len(crdObj.Spec.Versions) == 1 {
+			printerColumns = crdObj.Spec.Versions[0].AdditionalPrinterColumns
+		}
+	}
+
+	return &TypeInfo{Schema: &schema, PrinterColumns: printerColumns}, nil
 }
 
 // Figures out where the package lives on disk
