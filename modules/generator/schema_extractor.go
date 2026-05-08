@@ -16,10 +16,50 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
+	"golang.org/x/tools/go/packages"
 	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	k8sschema "k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-tools/pkg/crd"
+	"sigs.k8s.io/controller-tools/pkg/loader"
+	"sigs.k8s.io/controller-tools/pkg/markers"
 )
+
+// newCRDParser creates a ready-to-use controller-tools parser for the given package.
+// It returns a configured crd.Parser with all kubebuilder markers registered,
+// and the loaded root packages (needed to build TypeIdents).
+func newCRDParser(packagePath string) (*crd.Parser, []*loader.Package, error) {
+	moduleDir, err := findModuleDir(packagePath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("finding module dir: %w", err)
+	}
+
+	config := &packages.Config{Dir: moduleDir}
+	roots, err := loader.LoadRootsWithConfig(config, packagePath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("loading package %q: %w", packagePath, err)
+	}
+	if len(roots) == 0 {
+		return nil, nil, fmt.Errorf("no packages found for path %q", packagePath)
+	}
+
+	registry := &markers.Registry{}
+	generator := crd.Generator{}
+	if err := generator.RegisterMarkers(registry); err != nil {
+		return nil, nil, fmt.Errorf("registering markers: %w", err)
+	}
+
+	parser := &crd.Parser{
+		Collector: &markers.Collector{Registry: registry},
+		Checker:   &loader.TypeChecker{},
+	}
+	crd.AddKnownTypes(parser)
+
+	for _, root := range roots {
+		parser.NeedPackage(root)
+	}
+
+	return parser, roots, nil
+}
 
 // TypeInfo holds the results of a single parser pass over a Go type:
 // the OpenAPI schema and the additionalPrinterColumns.
