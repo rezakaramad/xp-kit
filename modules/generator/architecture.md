@@ -1,4 +1,4 @@
-# Generator Package – Function Call Graph
+# generator package – function call graph
 
 ```mermaid
 graph TD
