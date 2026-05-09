@@ -88,6 +88,12 @@ What each tag does:
 - `functions/xtenant-render/v0.1.0` publishes `ghcr.io/<owner>/function-xtenant-render:v0.1.0`
 - `modules/runner/v0.1.0` or `cmd/gen-xrd/v0.1.0` trigger the GoReleaser workflow
 
+When you look at GitHub Packages, you will usually see both `function-...` and `...-runtime` images:
+
+- `function-...` is the Crossplane function package you install from a `Function` resource. It is built from the `.xpkg` artifact.
+- `...-runtime` is the backing container image used by that package.
+- In normal usage, you want `function-...`, not `...-runtime`.
+
 GitHub Releases and GHCR package versions are related, but they are not the same thing:
 
 - GitHub Releases come from the release workflows.
