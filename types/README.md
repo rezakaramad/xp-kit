@@ -19,5 +19,3 @@ go run github.com/rezakaramad/crossplane-toolkit/cmd/gen-xrd \
   --group idp.rezakara.demo \
   --version v1beta1
 ```
-
-In short: define types here, then generate XRDs from them.

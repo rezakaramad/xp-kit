@@ -54,9 +54,9 @@ go mod tidy
 
 ## How it works
 
-`gen-xrd` delegates to `modules/generator`, which:
+`gen-xrd` uses `modules/generator` to do the actual XRD generation:
 
 1. Resolves the type package from the module cache or a `replace` directive.
-2. Parses the Go AST and collects `+kubebuilder:validation:*` and `+kubebuilder:default` markers.
+2. Parses the Go source code structure and collects `+kubebuilder:validation:*` and `+kubebuilder:default` markers.
 3. Flattens the resulting OpenAPI schema (removes `$ref` / `allOf` wrappers).
 4. Wraps the schema in a `CompositeResourceDefinition` object and serialises it to YAML, omitting the `status` field.
