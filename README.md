@@ -2,20 +2,19 @@
 	<img width="24%" src="./logo.png">
 </p>
 <p align="center" >
-	<img src="https://img.shields.io/badge/go-1.26-00ADD8?style=flat&logo=go&logoColor=white" />
-	<img src="https://img.shields.io/badge/crossplane-functions-326CE5?style=flat&logo=crossplane&logoColor=white" />
-	<img src="https://img.shields.io/badge/xpkg-packaging-1F2937?style=flat" />
-	<img src="https://img.shields.io/badge/release-please-34A853?style=flat" />
+	<img src="https://img.shields.io/badge/go-00ADD8?style=flat&logo=go&logoColor=white" />
+  <img src="https://img.shields.io/badge/crossplane-326CE5?style=flat&logo=crossplane&logoColor=white" />
+	<img src="https://img.shields.io/badge/release--please-34A853?style=flat&logo=google" />
 	<img src="https://img.shields.io/badge/github%20actions-CI-2088FF?style=flat&logo=githubactions&logoColor=white" />
 </p>
 
 # crossplane-toolkit
 
-Go workspace for building Crossplane-related libraries, functions, code generators, and shared API types.
+A workspace for building Crossplane-related libraries, functions, code generators, and shared API types.
 
 This repository is organized as a small monorepo. Each top-level directory has a distinct role so reusable code, runnable function packages, CLI entrypoints, and shared type definitions can evolve independently.
 
-## Repository Structure
+## Repository structure
 
 - `functions/`
 	Contains deployable Crossplane composition functions.
@@ -36,14 +35,14 @@ This repository is organized as a small monorepo. Each top-level directory has a
 - `.github/`
 	Contains repository automation such as CI, release, and package publishing workflows.
 
-## Layout Conventions
+## Layout conventions
 
 - Each reusable library lives in its own Go module when it needs independent versioning or release management.
 - Each deployable function keeps its runtime code, package metadata, and container build definition together in one directory.
 - Shared types are separated from executable code so they can be imported without pulling in runtime concerns.
 - Build and release automation is managed at the repository level, while function packaging assets live with each function.
 
-## Typical Workflow
+## Typical workflow
 
 1. Add or update shared types in `types/` when the resource model changes.
 2. Put reusable logic in `modules/` when it should be shared across multiple binaries or functions.
@@ -54,3 +53,5 @@ This repository is organized as a small monorepo. Each top-level directory has a
 
 - This repository uses Go modules across multiple directories rather than a single top-level module.
 - Function packaging and publishing are handled through repository workflows and per-function package metadata.
+
+Made with 🤓, 🐧 and 🍷.
