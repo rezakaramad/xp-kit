@@ -35,7 +35,7 @@ This repository is organized as a small monorepo. Each top-level directory has a
 
 ## Layout conventions
 
-- Each reusable library lives in its own Go module when it needs independent versioning or release management.
+- Each reusable library lives in its own Go module when it needs isolation or reuse. Only externally consumed surfaces need dedicated release management.
 - Each deployable function keeps its runtime code, package metadata, and container build definition together in one directory.
 - Shared types are separated from executable code so they can be imported without pulling in runtime concerns.
 - Build and release automation is managed at the repository level, while function packaging assets live with each function.
@@ -47,9 +47,25 @@ This repository is organized as a small monorepo. Each top-level directory has a
 3. Implement deployable function behavior in `functions/`.
 4. Add command-line tooling in `cmd/` when repository workflows need a dedicated executable.
 
+## Local checks
+
+- VS Code workspace settings are configured to use `golangci-lint` on save.
+- Run the same per-function checks used in CI with `./scripts/check-functions.sh <function-name>`.
+- If you use `task`, the same entrypoints are available through `Taskfile.yml`.
+- You can also run the matching VS Code tasks: `Check xtenant-validate`, `Check xtenant-render`, or `Check all functions`.
+
+Examples:
+
+```sh
+./scripts/check-functions.sh xtenant-validate
+./scripts/check-functions.sh xtenant-render
+task check:xtenant-validate
+task check:functions
+```
+
 ## Notes
 
 - This repository uses Go modules across multiple directories rather than a single top-level module.
-- Function packaging and publishing are handled through repository workflows and per-function package metadata.
+- Function packaging is validated on branch and pull request builds, then published only from function version tags.
 
 Made with 🤓, 🐧 and 🍷.

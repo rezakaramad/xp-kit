@@ -52,12 +52,14 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: functions/xtenant-validate
+          args: --config ../../.golangci.yml
 
       - name: Lint (xtenant-render)
         uses: golangci/golangci-lint-action@v7
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: functions/xtenant-render
+          args: --config ../../.golangci.yml
 
   unit-test:
     runs-on: ubuntu-latest
@@ -101,7 +103,7 @@ jobs:
 
   build:
     needs: [lint, unit-test, discover]
-    # Only push packages on main; still build on PRs to catch errors early.
+    # Always build to validate packaging, but only publish from function tags.
     runs-on: ubuntu-latest
 
     strategy:
@@ -142,7 +144,7 @@ jobs:
           sudo mv crossplane /usr/local/bin
 
       - name: Login to GitHub Container Registry
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -158,7 +160,7 @@ jobs:
             $FUNCTION_PATH
 
       - name: Push runtime image
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         run: docker push $RUNTIME_IMAGE
 
       - name: Build Crossplane package
@@ -169,7 +171,7 @@ jobs:
             --package-file $PACKAGE_FILE
 
       - name: Push Crossplane package
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           crossplane xpkg push \
             -f $PACKAGE_FILE \

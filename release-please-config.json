@@ -8,11 +8,6 @@
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true
     },
-    "modules/generator": {
-      "release-type": "go",
-      "changelog-path": "CHANGELOG.md",
-      "bump-minor-pre-major": true
-    },
     "types/xtenant": {
       "release-type": "go",
       "changelog-path": "CHANGELOG.md",

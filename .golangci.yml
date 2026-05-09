@@ -28,6 +28,7 @@ linters:
     - wsl
     - wsl_v5
     - nlreturn
+    - whitespace
 
     # Warns about uses of fmt.Sprintf that are less performant than alternatives
     # such as string concatenation. We value readability more than performance
@@ -97,6 +98,12 @@ linters:
     # against idiomatic Go programming, which encourages this approach - e.g.
     # to scope errors.
     - noinlineerr
+
+    # These rules mostly create repo-specific style churn without much payoff.
+    - embeddedstructfieldcheck
+    - goconst
+    - gomodguard
+    - tagalign
   settings:
     depguard:
       rules:
@@ -116,9 +123,6 @@ linters:
     errcheck:
       check-type-assertions: false
       check-blank: false
-    goconst:
-      min-len: 3
-      min-occurrences: 5
     gocritic:
       enabled-tags:
         - performance
@@ -164,7 +168,6 @@ linters:
           - gosec
           - scopelint
           - unparam
-          - embeddedstructfieldcheck
         path: _test(ing)?\.go
 
       - linters:

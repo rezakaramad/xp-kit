@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Check xtenant-validate",
+      "type": "shell",
+      "command": "./scripts/check-functions.sh",
+      "args": [
+        "xtenant-validate"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go",
+      "group": "test"
+    },
+    {
+      "label": "Check xtenant-render",
+      "type": "shell",
+      "command": "./scripts/check-functions.sh",
+      "args": [
+        "xtenant-render"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go",
+      "group": "test"
+    },
+    {
+      "label": "Check all functions",
+      "type": "shell",
+      "command": "./scripts/check-functions.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go",
+      "group": "test"
+    }
+  ]
+}
