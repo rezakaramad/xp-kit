@@ -7,25 +7,30 @@ This function validates an observed `XTenant`, checks DNS availability through t
 ```mermaid
 flowchart LR
     A[main.go\nCLI.Run] --> B[function.Serve]
-    A --> K[Kubernetes client]
-    B --> C[fn.go\nRunFunction]
+    A --> C[Kubernetes client]
+    B --> D[fn.go\nRunFunction]
 
-    C --> D[Load observed XR\nand function input]
-    D --> E[buildDNSClient]
-    E --> E1[PowerDNS client]
-    E --> E2[Cloud DNS client]
-    E --> E3[readSecretKey\nfor PowerDNS]
+    D --> E[Load XR + Input]
+    D --> F[buildDNSClient]
+    D --> G[validate.go\nValidate]
+    D --> H[approve.go\nIsApproved]
+    H --> I[status.go\nPendingApproval]
+    H --> J[status.go\nProvisioning]
 
-    C --> F[validate.go\nValidate]
-    F --> G[BuildFQDN]
-    F --> H[dns.go\nDNSClient.CheckDNSAvailable]
-    H --> E1
-    H --> E2
+    subgraph DNS[DNS layer]
+        K[dns.go\nDNSClient]
+        L[pdns_client.go\nPowerDNS client]
+        M[gcp_dns_client.go\nCloud DNS client]
+    end
 
-    C --> I[approve.go\nIsApproved]
-    I --> J[status.go\nPendingApproval]
-    I --> L[status.go\nProvisioning]
-    C --> M[fn.go\nresponse helpers]
+    G --> N[BuildFQDN]
+    G --> K
+    F --> L
+    F --> M
+    F --> O[readSecretKey\nfor PowerDNS]
+    O --> C
+    L -. implements .-> K
+    M -. implements .-> K
 ```
 
 ## File Roles
