@@ -1,4 +1,4 @@
-# xtenant-render function call graph 
+# `xtenant-render` function call graph 
 
 This function renders the desired tenant resources after approval. It builds Entra identity resources, waits for principal object IDs to appear in observed composed resources, renders ArgoCD Applications, bundles them into YAML, and writes that bundle through a GitHub `RepositoryFile` resource.
 

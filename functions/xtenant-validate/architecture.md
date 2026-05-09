@@ -1,4 +1,4 @@
-# xtenant-validate function call graph 
+# `xtenant-validate` function call graph 
 
 This function validates an observed `XTenant`, checks DNS availability through the configured DNS provider, and gates the tenant on approval before the next pipeline step proceeds.
 
