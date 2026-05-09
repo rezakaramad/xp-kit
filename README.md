@@ -8,8 +8,6 @@
 	<img src="https://img.shields.io/badge/github%20actions-CI-2088FF?style=flat&logo=githubactions&logoColor=white" />
 </p>
 
-# crossplane-toolkit
-
 A workspace for building Crossplane-related libraries, functions, code generators, and shared API types.
 
 This repository is organized as a small monorepo. Each top-level directory has a distinct role so reusable code, runnable function packages, CLI entrypoints, and shared type definitions can evolve independently.
