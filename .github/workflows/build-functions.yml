@@ -19,7 +19,7 @@ env:
   REGISTRY: ghcr.io
   FUNCTIONS_DIR: functions
   GO_VERSION: "1.26"
-  GOLANGCI_VERSION: "v2.4.0"
+  GOLANGCI_VERSION: "v2.12.2"
 
 concurrency:
   group: crossplane-functions-${{ github.ref }}
