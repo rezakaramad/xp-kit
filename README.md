@@ -63,6 +63,46 @@ task check:xtenant-validate
 task check:functions
 ```
 
+## Release flow
+
+There are two separate release lanes in this repository:
+
+- `release-please` watches `main` and prepares version bumps and GitHub releases for the configured components.
+- package publication happens only when you push a component tag that matches the workflow pattern.
+
+Use this sequence after the repository has been cleaned and you want a fresh release cycle:
+
+1. Merge the changes you want released to `main`.
+2. Let `release-please` open or update the release PR.
+3. Merge the release PR.
+4. Push only the component tags you actually want to publish.
+
+Tag patterns used by the current workflows:
+
+- Functions: `functions/<name>/v<semver>`
+- GoReleaser modules and commands: `modules/runner/v<semver>` and `cmd/<name>/v<semver>`
+- Shared types: `types/xtenant/v<semver>`
+
+Examples:
+
+```sh
+git tag functions/xtenant-validate/v0.1.0
+git tag functions/xtenant-render/v0.1.0
+git push origin functions/xtenant-validate/v0.1.0 functions/xtenant-render/v0.1.0
+```
+
+What each tag does:
+
+- `functions/xtenant-validate/v0.1.0` publishes `ghcr.io/<owner>/function-xtenant-validate:v0.1.0`
+- `functions/xtenant-render/v0.1.0` publishes `ghcr.io/<owner>/function-xtenant-render:v0.1.0`
+- `modules/runner/v0.1.0` or `cmd/gen-xrd/v0.1.0` trigger the GoReleaser workflow
+
+The GitHub Releases page and the GHCR package versions are related but not identical:
+
+- GitHub Releases come from the release workflows.
+- GHCR function package versions come directly from the function tag that triggered publication.
+- If you want Releases and Packages to stay aligned, publish functions with the same semver that was just merged by `release-please` for that component.
+
 ## Notes
 
 - This repository uses Go modules across multiple directories rather than a single top-level module.
