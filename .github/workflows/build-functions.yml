@@ -47,10 +47,17 @@ jobs:
         working-directory: functions/xtenant-render
         run: go mod tidy && git diff --exit-code go.mod go.sum
 
-      - name: Lint
+      - name: Lint (xtenant-validate)
         uses: golangci/golangci-lint-action@v7
         with:
           version: ${{ env.GOLANGCI_VERSION }}
+          working-directory: functions/xtenant-validate
+
+      - name: Lint (xtenant-render)
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: ${{ env.GOLANGCI_VERSION }}
+          working-directory: functions/xtenant-render
 
   unit-test:
     runs-on: ubuntu-latest
