@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.2](https://github.com/rezakaramad/crossplane-toolkit/compare/v0.0.1...v0.0.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* **xtenant-render:** drop error return from resolveBindingPrincipalObjectID ([a78e113](https://github.com/rezakaramad/crossplane-toolkit/commit/a78e113a37b5a762966355d7ead1b595daee2964))
+* **xtenant-render:** wait instead of fatal when principal status fields not yet populated ([67b5ed0](https://github.com/rezakaramad/crossplane-toolkit/commit/67b5ed0c38d3c07df573cb61676c12c8d16e03ca))
+
 ## 0.0.1 (2026-05-09)
 
 
