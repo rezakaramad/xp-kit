@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.2](https://github.com/rezakaramad/crossplane-toolkit/compare/v0.0.1...v0.0.2) (2026-05-13)
+
+
+### Bug Fixes
+
+* **xtenant-validate:** skip validation after approval ([8dac6af](https://github.com/rezakaramad/crossplane-toolkit/commit/8dac6afb1ac0843f5b5dcd6f5ea1993fc3092b35))
+* **xtenant-validate:** skip validation after approval ([cb47169](https://github.com/rezakaramad/crossplane-toolkit/commit/cb4716988b419d75ac28369c599c21167c387f67))
+
 ## 0.0.1 (2026-05-09)
 
 
