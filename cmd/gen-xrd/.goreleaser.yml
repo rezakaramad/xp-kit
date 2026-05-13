@@ -1,0 +1,23 @@
+version: 2
+
+monorepo:
+  tag_prefix: "cmd/gen-xrd/"
+  dir: cmd/gen-xrd
+
+builds:
+  - id: gen-xrd
+    main: ./cmd/gen-xrd
+    binary: gen-xrd
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+release:
+  mode: keep-existing
+
+changelog:
+  disable: true
