@@ -86,6 +86,23 @@ func (f *Function) RunFunction(
 	}
 
 	// ---------------------------------------------------------------------
+	// 4. Approved tenants already passed validation before approval was set.
+	// Skip external re-validation on subsequent reconciles.
+	// ---------------------------------------------------------------------
+	if IsApproved(tenantRequest) {
+		response.ConditionTrue(rsp, "Valid", "ValidationPassed").TargetComposite()
+		response.ConditionTrue(rsp, "Approved", "Approved").TargetComposite()
+
+		SetPhase(xr, PhaseProvisioning)
+		response.ConditionTrue(rsp, "Ready", "Provisioning").
+			WithMessage("XTenant approved, provisioning in progress").
+			TargetComposite()
+
+		log.Info("Skipping validation for approved tenant")
+		return done(rsp, xr)
+	}
+
+	// ---------------------------------------------------------------------
 	// 4. Resolve DNS client from input (or use injected override for tests)
 	// ---------------------------------------------------------------------
 	dnsClient := f.dns

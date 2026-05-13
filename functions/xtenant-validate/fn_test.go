@@ -21,6 +21,10 @@ func (fakeDNSClient) CheckDNSAvailable(_ context.Context, _ string) (DNSAvailabi
 	return DNSAvailabilityResult{Available: true}, nil
 }
 
+func stringPtr(s string) *string {
+	return &s
+}
+
 func TestRunFunction(t *testing.T) {
 	type args struct {
 		ctx context.Context
@@ -127,11 +131,69 @@ func TestRunFunction(t *testing.T) {
 				},
 			},
 		},
+		"SkipsValidationWhenApproved": {
+			reason: "The Function should skip external validation when the XTenant is already approved",
+			args: args{
+				ctx: context.Background(),
+				req: &fnv1.RunFunctionRequest{
+					Meta: &fnv1.RequestMeta{Tag: "approved"},
+					Observed: &fnv1.State{
+						Composite: &fnv1.Resource{Resource: resource.MustStructJSON(`{
+							"apiVersion": "idp.rezakara.demo/v1alpha1",
+							"kind": "XTenant",
+							"metadata": {"name": "payment"},
+							"spec": {
+								"dnsName": "payment",
+								"approved": true,
+								"owner": {"team": "platform", "email": "platform@example.com"}
+							}
+						}`)},
+					},
+					Input: resource.MustStructJSON(`{
+						"apiVersion": "platform.rezakara.demo/v1beta1",
+						"kind": "Input",
+						"dns": {"baseDomain": "rezakara.demo"},
+						"clusters": [
+							{"name": "minikube-workload", "prefix": "wl"}
+						]
+					}`),
+				},
+			},
+			want: want{
+				rsp: &fnv1.RunFunctionResponse{
+					Meta: &fnv1.ResponseMeta{Tag: "approved", Ttl: durationpb.New(response.DefaultTTL)},
+					Conditions: []*fnv1.Condition{
+						{
+							Type:   "Valid",
+							Status: fnv1.Status_STATUS_CONDITION_TRUE,
+							Reason: "ValidationPassed",
+							Target: fnv1.Target_TARGET_COMPOSITE.Enum(),
+						},
+						{
+							Type:   "Approved",
+							Status: fnv1.Status_STATUS_CONDITION_TRUE,
+							Reason: "Approved",
+							Target: fnv1.Target_TARGET_COMPOSITE.Enum(),
+						},
+						{
+							Type:    "Ready",
+							Status:  fnv1.Status_STATUS_CONDITION_TRUE,
+							Reason:  "Provisioning",
+							Message: stringPtr("XTenant approved, provisioning in progress"),
+							Target:  fnv1.Target_TARGET_COMPOSITE.Enum(),
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			f := &Function{log: logging.NewNopLogger(), dns: fakeDNSClient{}}
+			if name == "SkipsValidationWhenApproved" {
+				f.dns = nil
+			}
 			rsp, err := f.RunFunction(tc.args.ctx, tc.args.req)
 
 			if diff := cmp.Diff(tc.want.rsp, rsp, protocmp.Transform(), protocmp.IgnoreFields(&fnv1.RunFunctionResponse{}, "desired")); diff != "" {
