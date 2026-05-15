@@ -1,7 +1,7 @@
 {
-  "modules/runner": "0.1.0",
+  "modules/runner": "0.1.1",
   "types/xtenant": "0.1.0",
-  "cmd/gen-xrd": "0.1.0",
+  "cmd/gen-xrd": "0.1.1",
   "functions/xtenant-validate": "0.1.0",
   "functions/xtenant-render": "0.1.0"
 }

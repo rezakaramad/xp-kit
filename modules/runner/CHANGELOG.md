@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/rezakaramad/crossplane-toolkit/compare/modules/runner/v0.1.0...modules/runner/v0.1.1) (2026-05-15)
+
+
+### Bug Fixes
+
+* **ci:** make goreleaser workflow compatible with OSS ([45fb283](https://github.com/rezakaramad/crossplane-toolkit/commit/45fb283fbc21371de3c1566b5e7d8278fdc85854))
+
 ## [0.1.0](https://github.com/rezakaramad/crossplane-toolkit/compare/modules/runner/v0.0.1...modules/runner/v0.1.0) (2026-05-13)
 
 
