@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Fix xtenant-validate",
+      "type": "shell",
+      "command": "./hack/fix-functions.sh",
+      "args": [
+        "xtenant-validate"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go"
+    },
+    {
+      "label": "Fix xtenant-render",
+      "type": "shell",
+      "command": "./hack/fix-functions.sh",
+      "args": [
+        "xtenant-render"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go"
+    },
+    {
+      "label": "Fix all functions",
+      "type": "shell",
+      "command": "./hack/fix-functions.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go"
+    },
+    {
+      "label": "Check xtenant-validate",
+      "type": "shell",
+      "command": "./hack/verify-functions.sh",
+      "args": [
+        "xtenant-validate"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go",
+      "group": "test"
+    },
+    {
+      "label": "Check xtenant-render",
+      "type": "shell",
+      "command": "./hack/verify-functions.sh",
+      "args": [
+        "xtenant-render"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go",
+      "group": "test"
+    },
+    {
+      "label": "Check all functions",
+      "type": "shell",
+      "command": "./hack/verify-functions.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$go",
+      "group": "test"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "go.useLanguageServer": true,
+  "go.lintTool": "golangci-lint",
+  "go.lintOnSave": "package",
+  "go.lintFlags": [
+    "--timeout=2m",
+    "--config=${workspaceFolder}/.golangci.yml"
+  ],
+  "go.toolsEnvVars": {
+    "GO111MODULE": "on"
+  }
+}

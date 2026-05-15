@@ -1,0 +1,54 @@
+version: '3'
+
+tasks:
+  install:hooks:
+    desc: Install git hooks (run once after cloning).
+    cmds:
+      - cp hack/pre-push .git/hooks/pre-push
+      - chmod +x .git/hooks/pre-push
+      - echo "Git hooks installed."
+
+
+  fix:function:
+    desc: Auto-fix tidy, lint, and formatting issues for one function module.
+    requires:
+      vars: [FUNCTION]
+    cmds:
+      - ./hack/fix-functions.sh {{.FUNCTION}}
+
+  fix:functions:
+    desc: Auto-fix tidy, lint, and formatting issues for all function modules.
+    cmds:
+      - ./hack/fix-functions.sh
+
+  fix:xtenant-validate:
+    desc: Auto-fix xtenant-validate.
+    cmds:
+      - ./hack/fix-functions.sh xtenant-validate
+
+  fix:xtenant-render:
+    desc: Auto-fix xtenant-render.
+    cmds:
+      - ./hack/fix-functions.sh xtenant-render
+
+  check:function:
+    desc: Run tidy, lint, and tests for one function module.
+    requires:
+      vars: [FUNCTION]
+    cmds:
+      - ./hack/verify-functions.sh {{.FUNCTION}}
+
+  check:functions:
+    desc: Run tidy, lint, and tests for all function modules.
+    cmds:
+      - ./hack/verify-functions.sh
+
+  check:xtenant-validate:
+    desc: Run checks for xtenant-validate.
+    cmds:
+      - ./hack/verify-functions.sh xtenant-validate
+
+  check:xtenant-render:
+    desc: Run checks for xtenant-render.
+    cmds:
+      - ./hack/verify-functions.sh xtenant-render
