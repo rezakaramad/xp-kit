@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "pull-request-header": "🚀 Next drop is ready.",
+  "pull-request-footer": "",
+  "include-component-in-tag": true,
+  "tag-separator": "/",
+  "packages": {
+    "modules/runner": {
+      "component": "modules/runner",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
+    },
+    "types/xtenant": {
+      "component": "types/xtenant",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
+    },
+    "cmd/gen-xrd": {
+      "component": "cmd/gen-xrd",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
+    },
+    "functions/xtenant-validate": {
+      "component": "functions/xtenant-validate",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
+    },
+    "functions/xtenant-render": {
+      "component": "functions/xtenant-render",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
+    }
+  }
+}

@@ -1,0 +1,182 @@
+name: Build and publish Crossplane function packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "functions/**"
+      - "!functions/**/*.md"
+    tags:
+      - "functions/xtenant-validate/v*"
+      - "functions/xtenant-render/v*"
+  pull_request:
+    paths:
+      - "functions/**"
+      - "!functions/**/*.md"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  FUNCTIONS_DIR: functions
+  GO_VERSION: "1.26"
+  GOLANGCI_VERSION: "v2.12.2"
+
+concurrency:
+  group: crossplane-functions-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - name: Check go mod tidy (xtenant-validate)
+        working-directory: functions/xtenant-validate
+        run: go mod tidy && git diff --exit-code go.mod go.sum
+
+      - name: Check go mod tidy (xtenant-render)
+        working-directory: functions/xtenant-render
+        run: go mod tidy && git diff --exit-code go.mod go.sum
+
+      - name: Lint (xtenant-validate)
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: ${{ env.GOLANGCI_VERSION }}
+          working-directory: functions/xtenant-validate
+          args: --config ../../.golangci.yml
+
+      - name: Lint (xtenant-render)
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: ${{ env.GOLANGCI_VERSION }}
+          working-directory: functions/xtenant-render
+          args: --config ../../.golangci.yml
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run unit tests (xtenant-validate)
+        working-directory: functions/xtenant-validate
+        run: go test -v -cover ./...
+
+      - name: Run unit tests (xtenant-render)
+        working-directory: functions/xtenant-render
+        run: go test -v -cover ./...
+
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - id: set-matrix
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            FUNCTION_NAME="${{ github.ref_name }}"
+            FUNCTION_NAME="${FUNCTION_NAME#functions/}"
+            FUNCTION_NAME="${FUNCTION_NAME%/v*}"
+            DIRS=$(printf '%s\n' "$FUNCTION_NAME" | jq -R -s -c 'split("\n")[:-1]')
+          else
+            DIRS=$(find "$FUNCTIONS_DIR" -mindepth 1 -maxdepth 1 -type d | xargs -I{} basename {} | jq -R -s -c 'split("\n")[:-1]')
+          fi
+          echo "matrix={\"function\":$DIRS}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: [lint, unit-test, discover]
+    # Always build to validate packaging, but only publish from function tags.
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set variables
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            IMAGE_TAG="${{ github.ref_name }}"
+            IMAGE_TAG="${IMAGE_TAG##*/}"
+          fi
+
+          echo "FUNCTION_NAME=${{ matrix.function }}" >> $GITHUB_ENV
+          echo "PUBLISHED_FUNCTION_NAME=function-${{ matrix.function }}" >> $GITHUB_ENV
+          echo "FUNCTION_PATH=${{ env.FUNCTIONS_DIR }}/${{ matrix.function }}" >> $GITHUB_ENV
+          echo "PACKAGE_FILE=${{ env.FUNCTIONS_DIR }}/${{ matrix.function }}/${{ matrix.function }}.xpkg" >> $GITHUB_ENV
+          echo "RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.function }}-runtime:${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "XPKG_VERSION=${IMAGE_TAG}" >> $GITHUB_ENV
+
+      - name: Install Crossplane CLI
+        run: |
+          mkdir tmp && cd tmp
+          curl -sL https://raw.githubusercontent.com/crossplane/crossplane/main/install.sh | sh
+          sudo mv crossplane /usr/local/bin
+
+      - name: Login to GitHub Container Registry
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build runtime image
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg GO_VERSION=${{ env.GO_VERSION }} \
+            -t $RUNTIME_IMAGE \
+            $FUNCTION_PATH
+
+      - name: Push runtime image
+        if: startsWith(github.ref, 'refs/tags/')
+        run: docker push $RUNTIME_IMAGE
+
+      - name: Build Crossplane package
+        run: |
+          crossplane xpkg build \
+            --package-root $FUNCTION_PATH/package \
+            --embed-runtime-image $RUNTIME_IMAGE \
+            --package-file $PACKAGE_FILE
+
+      - name: Push Crossplane package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          crossplane xpkg push \
+            -f $PACKAGE_FILE \
+            ghcr.io/${{ github.repository_owner }}/${PUBLISHED_FUNCTION_NAME}:${XPKG_VERSION}
+
+          crossplane xpkg push \
+            -f $PACKAGE_FILE \
+            ghcr.io/${{ github.repository_owner }}/${PUBLISHED_FUNCTION_NAME}:latest
