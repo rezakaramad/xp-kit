@@ -1,0 +1,183 @@
+version: "2"
+
+output:
+  formats:
+    text:
+      path: stderr
+
+linters:
+  default: none
+  enable:
+    # Correctness — catches real bugs
+    - govet
+    - staticcheck
+    - errcheck
+    - bodyclose
+    - copyloopvar
+
+    # Code quality
+    - revive
+    - unused
+    - gocognit
+    - gocritic
+    - nakedret
+    - unparam
+    - unconvert
+    - prealloc
+    - containedctx
+    - forcetypeassert
+
+    # Security
+    - gosec
+
+    # Conventions
+    - gochecknoglobals
+    - gochecknoinits
+    - interfacebloat
+    - musttag
+    - tagliatelle
+    - misspell
+
+    # Dependency management
+    - depguard
+
+    # Linting discipline
+    - nolintlint
+
+  settings:
+    depguard:
+      rules:
+        no_third_party_test_libraries:
+          list-mode: lax
+          files:
+            - $test
+          deny:
+            - pkg: github.com/stretchr/testify
+              desc: See https://go.dev/wiki/TestComments#assert-libraries
+            - pkg: github.com/onsi/ginkgo
+              desc: See https://go.dev/wiki/TestComments#assert-libraries
+            - pkg: github.com/onsi/gomega
+              desc: See https://go.dev/wiki/TestComments#assert-libraries
+    errcheck:
+      check-type-assertions: false
+      check-blank: false
+    gocritic:
+      enabled-tags:
+        - performance
+      settings:
+        captLocal:
+          paramsOnly: true
+        rangeValCopy:
+          sizeThreshold: 32
+    govet:
+      disable:
+        - shadow
+    interfacebloat:
+      max: 5
+    nakedret:
+      max-func-lines: 30
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
+    tagliatelle:
+      case:
+        rules:
+          json: goCamel
+    unparam:
+      check-exported: false
+    unused:
+      exported-fields-are-used: true
+
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - containedctx
+          - errcheck
+          - forcetypeassert
+          - gochecknoglobals
+          - gochecknoinits
+          - gocognit
+          - gosec
+          - unparam
+        path: _test(ing)?\.go
+
+      - linters:
+          - gocritic
+        path: _test\.go
+        text: (unnamedResult|exitAfterDefer)
+
+      # Performance-oriented warnings about copying large values — suppress in
+      # favour of explicit profiling when performance actually matters.
+      - linters:
+          - gocritic
+        text: '(hugeParam|rangeValCopy):'
+
+      # SA3000: "TestMain should call os.Exit" — false positive when a helper
+      # method calls os.Exit on our behalf.
+      - linters:
+          - staticcheck
+        text: 'SA3000:'
+
+      # G101: "potential hardcoded credentials" — triggers on any variable named
+      # *secret*, which is very common in Kubernetes where Secret is an API type.
+      - linters:
+          - gosec
+        text: 'G101:'
+
+      # G104: "errors unhandled" — duplicate of errcheck.
+      - linters:
+          - gosec
+        text: 'G104:'
+
+      # G601: implicit memory aliasing in range loop — false positive on Go 1.22+.
+      - linters:
+          - gosec
+        text: 'G601:'
+
+      # Some k8s dependencies do not have JSON tags on all fields in structs.
+      - linters:
+          - musttag
+        path: k8s.io/
+
+    paths:
+      - zz_generated\..+\.go$
+      - .+\.pb.go$
+      - third_party$
+      - builtin$
+      - example$
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/crossplane)
+        - blank
+        - dot
+      custom-order: true
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - zz_generated\..+\.go$
+      - .+\.pb.go$
+      - third_party$
+      - builtin$
+      - example$

@@ -1,0 +1,60 @@
+name: Validate Functions
+
+on:
+  pull_request:
+    paths:
+      - 'functions/**'
+      - '.golangci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  detect-changes:
+    name: Detect changed functions
+    runs-on: ubuntu-latest
+    outputs:
+      functions: ${{ steps.changed.outputs.functions }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed functions
+        id: changed
+        run: |
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          functions=$(echo "$changed_files" \
+            | grep -E '^functions/[^/]+/' \
+            | cut -d/ -f2 \
+            | sort -u \
+            | jq -Rcn '[inputs | select(length>0)]' || echo '[]')
+          echo "functions=${functions}" >> "$GITHUB_OUTPUT"
+          echo "Changed functions: ${functions}"
+
+  verify:
+    name: Verify ${{ matrix.function }}
+    needs: detect-changes
+    if: needs.detect-changes.outputs.functions != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        function: ${{ fromJson(needs.detect-changes.outputs.functions) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: functions/${{ matrix.function }}/go.mod
+          cache-dependency-path: functions/${{ matrix.function }}/go.sum
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh \
+            | sh -s -- -b /usr/local/bin
+
+      - name: Verify ${{ matrix.function }}
+        env:
+          GOWORK: off
+        run: ./hack/verify-functions.sh ${{ matrix.function }}

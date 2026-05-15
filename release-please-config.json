@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "pull-request-header": "🚀 Next drop is ready.",
+  "pull-request-footer": "",
+  "include-component-in-tag": true,
+  "tag-separator": "/",
+  "packages": {
+    "modules/runner": {
+      "component": "modules/runner",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.0"
+    },
+    "modules/gcpdns": {
+      "component": "modules/gcpdns",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.0"
+    },
+    "modules/pdns": {
+      "component": "modules/pdns",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.0"
+    },
+    "cmd/gen-xrd": {
+      "component": "cmd/gen-xrd",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.0"
+    },
+    "modules/nextinsight": {
+      "component": "modules/nextinsight",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.0"
+    },
+  }
+}

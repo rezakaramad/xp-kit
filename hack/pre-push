@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# pre-push hook — auto-fixes lint and formatting for all function modules,
+# then aborts the push if any files were changed (so you can review and re-push).
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+echo "pre-push: running fix:functions..."
+task fix:functions
+
+if ! git diff --quiet; then
+  echo ""
+  echo "pre-push: lint auto-fix changed the following files:"
+  git diff --name-only
+  echo ""
+  echo "pre-push: staged the fixes and re-run 'git push'."
+  exit 1
+fi
+
+echo "pre-push: all clean."
