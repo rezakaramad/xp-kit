@@ -1,0 +1,68 @@
+name: Release CLI Binaries
+
+on:
+  push:
+    tags:
+      - 'cmd/*/v[0-9]*'
+
+permissions:
+  contents: write
+
+jobs:
+  cli-build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve module path and version from tag
+        id: meta
+        run: |
+          # Tag format: cmd/<name>/v<semver>  e.g. cmd/gen-xrd/v0.3.1
+          TAG="${{ github.ref_name }}"
+          MODULE="${TAG%/v*}"
+          NAME="${MODULE##*/}"
+          VERSION="${TAG##*/}"
+          echo "module=${MODULE}" >> "$GITHUB_OUTPUT"
+          echo "name=${NAME}"     >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ steps.meta.outputs.module }}/go.mod
+          cache-dependency-path: ${{ steps.meta.outputs.module }}/go.sum
+
+      - name: Build binaries
+        env:
+          NAME: ${{ steps.meta.outputs.name }}
+          MODULE: ${{ steps.meta.outputs.module }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          cd "$MODULE"
+          for GOOS in linux darwin windows; do
+            for GOARCH in amd64 arm64; do
+              EXT=""
+              if [ "$GOOS" = "windows" ]; then EXT=".exe"; fi
+              OUT="$GITHUB_WORKSPACE/dist/${NAME}_${GOOS}_${GOARCH}${EXT}"
+              GOOS=$GOOS GOARCH=$GOARCH go build \
+                -ldflags "-X main.version=${VERSION}" \
+                -o "$OUT" \
+                .
+            done
+          done
+
+      - name: Package and checksum
+        run: |
+          for f in "$GITHUB_WORKSPACE"/dist/*; do
+            case "$f" in
+              *.exe) zip -j "${f%.exe}.zip" "$f" && rm "$f" ;;
+              *)     tar -czf "${f}.tar.gz" "$f" && rm "$f" ;;
+            esac
+          done
+          sha256sum "$GITHUB_WORKSPACE"/dist/* > "$GITHUB_WORKSPACE/dist/checksums.txt"
+
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" dist/* --clobber
