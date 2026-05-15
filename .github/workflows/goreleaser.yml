@@ -35,6 +35,10 @@ jobs:
         run: |
           echo "GORELEASER_CURRENT_TAG=${{ steps.meta.outputs.version }}" >> "$GITHUB_ENV"
 
+      - name: Create local semver tag for GoReleaser
+        run: |
+          git tag -f "${{ steps.meta.outputs.version }}" "${{ github.sha }}"
+
       - uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
