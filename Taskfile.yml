@@ -6,19 +6,19 @@ tasks:
     requires:
       vars: [FUNCTION]
     cmds:
-      - ./hack/check-functions.sh {{.FUNCTION}}
+      - ./hack/verify-functions.sh {{.FUNCTION}}
 
   check:functions:
     desc: Run tidy, lint, and tests for all function modules.
     cmds:
-      - ./hack/check-functions.sh
+      - ./hack/verify-functions.sh
 
   check:xtenant-validate:
     desc: Run checks for xtenant-validate.
     cmds:
-      - ./hack/check-functions.sh xtenant-validate
+      - ./hack/verify-functions.sh xtenant-validate
 
   check:xtenant-render:
     desc: Run checks for xtenant-render.
     cmds:
-      - ./hack/check-functions.sh xtenant-render
+      - ./hack/verify-functions.sh xtenant-render
