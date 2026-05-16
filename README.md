@@ -36,6 +36,8 @@ It is a small monorepo, and each top-level directory has a pretty specific job.
 - VS Code is set up to use [golangci-lint](https://github.com/golangci/golangci-lint) on save.
 - We use a [Taskfile](https://taskfile.dev) to keep the common checks in one place.
 - Run `task --list` to see what is available, then pick the check you need for one function or for all of them.
+- The underlying scripts live in [hack/](./hack/), following the Kubernetes/CNCF convention for internal dev tooling.
+- [.vscode/tasks.json](./.vscode/tasks.json) wires the same scripts into the VS Code task runner (Terminal → Run Task), so you can run them from the editor without the terminal.
 
 A few useful ones:
 
