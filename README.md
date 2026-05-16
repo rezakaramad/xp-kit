@@ -8,9 +8,9 @@
 	<img src="https://img.shields.io/badge/github%20actions-CI-2088FF?style=flat&logo=githubactions&logoColor=white" />
 </p>
 
-A home for Crossplane-related libraries, functions, code generation tools, and shared API types.
+A monorepo for Crossplane-related libraries, functions, code generation tools, and shared API types.
 
-It is a small monorepo, and each top-level directory has a pretty specific job.
+Each top-level directory has a pretty specific job.
 
 ## Repository structure
 
