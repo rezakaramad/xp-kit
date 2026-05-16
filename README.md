@@ -20,6 +20,7 @@ It is a small monorepo, and each top-level directory has a pretty specific job.
 | [modules/](./modules/) | Shared Go modules for the rest of the repository. |
 | [cmd/](./cmd/) | Entry points for repo-owned CLI tools. |
 | [types/](./types/) | Shared API types and schemas used by the rest of the repo. |
+| [hack/](./hack/) | Internal development scripts such as local fix and verify helpers. |
 | [.github/](.github/) | Automation for CI, releases, and package publishing. |
 
 ## Typical workflow
