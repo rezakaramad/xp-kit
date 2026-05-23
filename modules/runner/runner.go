@@ -31,6 +31,26 @@ func init() {
 	}
 }
 
+// ContextEnricher is an optional hook that runs after the XR and defaults
+// have been decoded but before any builder is called. It receives the fully
+// populated Context and may return an enriched copy — for example, one that
+// has AppMetadata resolved from an external source such as Next-Insight.
+//
+// Return a non-nil error to halt reconciliation with a fatal condition.
+type ContextEnricher[XR any, D any] func(ctx context.Context, c Context[XR, D]) (Context[XR, D], error)
+
+// RunnerOption is a functional option for [New].
+type RunnerOption[XR any, D any] func(*Runner[XR, D])
+
+// WithContextEnricher registers an enricher that runs once per reconcile
+// after the XR is decoded. Use it to attach externally-resolved metadata
+// (e.g. Next-Insight AppMetadata) to the Context before builders execute.
+func WithContextEnricher[XR any, D any](e ContextEnricher[XR, D]) RunnerOption[XR, D] {
+	return func(r *Runner[XR, D]) {
+		r.enricher = e
+	}
+}
+
 // Runner owns the full composition function lifecycle for one pipeline step.
 // It decodes the XR, decodes the step input, reads observed and desired state,
 // processes each registered Builder, aggregates connection details, and writes
@@ -49,12 +69,19 @@ type Runner[XR any, D any] struct {
 	req      *fnv1.RunFunctionRequest
 	log      logging.Logger
 	builders []internalBuilder[XR, D]
+	enricher ContextEnricher[XR, D]
 }
 
 // New creates a Runner for the given request and logger.
 // Typically called once at the top of a RunFunction invocation.
-func New[XR any, D any](req *fnv1.RunFunctionRequest, log logging.Logger) *Runner[XR, D] {
-	return &Runner[XR, D]{req: req, log: log}
+// Optional [RunnerOption] values can be passed to configure the runner,
+// e.g. [WithContextEnricher].
+func New[XR any, D any](req *fnv1.RunFunctionRequest, log logging.Logger, opts ...RunnerOption[XR, D]) *Runner[XR, D] {
+	r := &Runner[XR, D]{req: req, log: log}
+	for _, opt := range opts {
+		opt(r)
+	}
+	return r
 }
 
 // Register adds a typed Builder to the Runner.
@@ -81,7 +108,7 @@ func Register[XR any, Defaults any, Observed runtime.Object, Desired runtime.Obj
 // The runner reads the observed parent XR and observed child resources,
 // lets builders produce the desired child resources, and writes the final
 // desired composed resources back into the function response.
-func (runner *Runner[XR, D]) Run(_ context.Context) (*fnv1.RunFunctionResponse, error) {
+func (runner *Runner[XR, D]) Run(ctx context.Context) (*fnv1.RunFunctionResponse, error) {
 	rsp := response.To(runner.req, response.DefaultTTL)
 
 	// Get the observed composite resource (parent XR) from the request and decode it into a typed XR struct.
@@ -143,6 +170,17 @@ func (runner *Runner[XR, D]) Run(_ context.Context) (*fnv1.RunFunctionResponse, 
 		XR:       xr,
 		Defaults: defaults,
 		Log:      log,
+	}
+
+	// If a ContextEnricher was registered (e.g. to fetch Next-Insight metadata),
+	// run it now so every builder can access the enriched context.
+	if runner.enricher != nil {
+		enriched, err := runner.enricher(ctx, functionContext)
+		if err != nil {
+			runner.fatal(rsp, "cannot enrich context", err)
+			return rsp, nil
+		}
+		functionContext = enriched
 	}
 
 	// Contains all connection data we want to publish for this XR, collected from builders.

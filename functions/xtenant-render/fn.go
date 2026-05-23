@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"maps"
 
-	xperrors "github.com/crossplane/crossplane-runtime/v2/pkg/errors"
 	inputv1beta1 "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/input/v1beta1"
 	"github.com/rezakaramad/crossplane-toolkit/modules/nextinsight"
 	xtenant "github.com/rezakaramad/crossplane-toolkit/types/xtenant"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	xperrors "github.com/crossplane/crossplane-runtime/v2/pkg/errors"
 	"github.com/crossplane/function-sdk-go/logging"
 	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/request"

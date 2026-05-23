@@ -3,8 +3,16 @@ package runner
 import (
 	"github.com/crossplane/function-sdk-go/logging"
 	"github.com/crossplane/function-sdk-go/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
+
+// MetadataLabeler is implemented by any type that can produce Kubernetes-safe
+// labels. [AppMetadata] from the nextinsight module satisfies this interface,
+// but callers can provide their own implementation.
+type MetadataLabeler interface {
+	Labels() map[string]string
+}
 
 // Context is the common input that every builder gets while the function runs.
 // In this case,
@@ -20,13 +28,37 @@ import (
 // Each one then uses that shared ctx to build its own resource.
 
 // The Context contains the following fields:
-// - XR: the main composite resource we are working on
-// - Defaults: the input/default values for this function step
-// - Log: a logger for writing debug or info messages
+//   - XR:          the main composite resource we are working on
+//   - Defaults:    the input/default values for this function step
+//   - Log:         a logger for writing debug or info messages
+//   - AppMetadata: optional metadata fetched from an external source (e.g. Next-Insight).
+//     When non-nil, builders should call ctx.StampMetadata(obj) to apply labels
+//     and annotations onto each composed child resource.
 type Context[XR any, Defaults any] struct {
-	XR       XR
-	Defaults Defaults
-	Log      logging.Logger
+	XR          XR
+	Defaults    Defaults
+	Log         logging.Logger
+	AppMetadata MetadataLabeler
+}
+
+// StampMetadata merges labels from ctx.AppMetadata onto obj.
+// It is a no-op when ctx.AppMetadata is nil, so builders can call it
+// unconditionally without guarding on whether metadata was resolved.
+func (c Context[XR, Defaults]) StampMetadata(obj metav1.Object) {
+	if c.AppMetadata == nil {
+		return
+	}
+
+	// Merge labels — metadata keys win on conflict because the metadata source
+	// (e.g. Next-Insight) is the system of record.
+	labels := obj.GetLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	for k, v := range c.AppMetadata.Labels() {
+		labels[k] = v
+	}
+	obj.SetLabels(labels)
 }
 
 // Builder is the interface for one resource-specific worker.

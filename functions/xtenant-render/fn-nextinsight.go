@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"maps"
 
-	"github.com/crossplane/function-sdk-go/resource/composed"
 	"github.com/rezakaramad/crossplane-toolkit/modules/nextinsight"
+
+	"github.com/crossplane/function-sdk-go/resource/composed"
 )
 
 // nextInsightAppIDLabel is the well-known label key on an XTenant's
