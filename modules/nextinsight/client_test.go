@@ -91,10 +91,10 @@ func TestGet_ErrorOnInvalidJSON(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// FetchAppMetadata — integration through the full client stack
+// FetchMetadata — integration through the full client stack
 // ---------------------------------------------------------------------------
 
-func TestFetchAppMetadata_HappyPath(t *testing.T) {
+func TestFetchMetadata_HappyPath(t *testing.T) {
 	appResp := applicationResponse{}
 	appResp.Data.Name = "My Platform App"
 	appResp.Data.Lifecycle.Name = "Production"
@@ -106,7 +106,7 @@ func TestFetchAppMetadata_HappyPath(t *testing.T) {
 		Data: []groupItem{
 			{Name: "ART-Platform", Type: groupTypeART},
 			{Name: "Team Falcon", Type: groupTypeAgileTeam},
-			// second ART — should be ignored
+			// second ART — should be ignored (first-wins)
 			{Name: "ART-Other", Type: groupTypeART},
 		},
 	}
@@ -121,33 +121,40 @@ func TestFetchAppMetadata_HappyPath(t *testing.T) {
 
 	c, _ := newTestClient(t, mux)
 
-	meta, err := c.FetchAppMetadata(context.Background(), "42")
+	ownership, app, err := c.FetchMetadata(context.Background(), "42")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	checks := []struct {
+	// Ownership fields
+	if ownership.AgileReleaseTrain != "ART-Platform" {
+		t.Errorf("AgileReleaseTrain = %q, want %q", ownership.AgileReleaseTrain, "ART-Platform")
+	}
+	if ownership.AgileTeam != "Team Falcon" {
+		t.Errorf("AgileTeam = %q, want %q", ownership.AgileTeam, "Team Falcon")
+	}
+
+	// Application fields
+	appChecks := []struct {
 		field string
 		got   string
 		want  string
 	}{
-		{"ApplicationID", meta.ApplicationID, "42"},
-		{"ApplicationName", meta.ApplicationName, "My Platform App"},
-		{"Lifecycle", meta.Lifecycle, "Production"},
-		{"Criticality", meta.Criticality, "High"},
-		{"DevelopmentType", meta.DevelopmentType, "In House"},
-		{"FacingInternet", meta.FacingInternet, "true"}, // lowercased
-		{"AgileReleaseTrain", meta.AgileReleaseTrain, "ART-Platform"},
-		{"AgileTeam", meta.AgileTeam, "Team Falcon"},
+		{"ApplicationID", app.ApplicationID, "42"},
+		{"ApplicationName", app.ApplicationName, "My Platform App"},
+		{"Lifecycle", app.Lifecycle, "Production"},
+		{"Criticality", app.Criticality, "High"},
+		{"DevelopmentType", app.DevelopmentType, "In House"},
+		{"FacingInternet", app.FacingInternet, "true"},
 	}
-	for _, tc := range checks {
+	for _, tc := range appChecks {
 		if tc.got != tc.want {
 			t.Errorf("%s = %q, want %q", tc.field, tc.got, tc.want)
 		}
 	}
 }
 
-func TestFetchAppMetadata_ApplicationEndpointError(t *testing.T) {
+func TestFetchMetadata_ApplicationEndpointError(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/API/rest/v3/applications/99", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -155,7 +162,7 @@ func TestFetchAppMetadata_ApplicationEndpointError(t *testing.T) {
 
 	c, _ := newTestClient(t, mux)
 
-	_, err := c.FetchAppMetadata(context.Background(), "99")
+	_, _, err := c.FetchMetadata(context.Background(), "99")
 	if err == nil {
 		t.Fatal("expected error when application endpoint fails")
 	}
@@ -164,7 +171,7 @@ func TestFetchAppMetadata_ApplicationEndpointError(t *testing.T) {
 	}
 }
 
-func TestFetchAppMetadata_GroupsEndpointError(t *testing.T) {
+func TestFetchMetadata_GroupsEndpointError(t *testing.T) {
 	appResp := applicationResponse{}
 	appResp.Data.Name = "Some App"
 
@@ -178,7 +185,7 @@ func TestFetchAppMetadata_GroupsEndpointError(t *testing.T) {
 
 	c, _ := newTestClient(t, mux)
 
-	_, err := c.FetchAppMetadata(context.Background(), "7")
+	_, _, err := c.FetchMetadata(context.Background(), "7")
 	if err == nil {
 		t.Fatal("expected error when groups endpoint fails")
 	}

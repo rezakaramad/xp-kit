@@ -1,4 +1,5 @@
 package nextinsight
+
 import (
 	"strings"
 	"testing"
@@ -54,12 +55,52 @@ func TestNormalize(t *testing.T) {
 	}
 }
 
+const testPrefix = "nextinsight.rezakara.demo/"
+
 // ---------------------------------------------------------------------------
-// AppMetadata.Labels
+// OwnershipMetadata.NamespaceLabels
 // ---------------------------------------------------------------------------
 
-func TestLabels_PopulatesAllFields(t *testing.T) {
-	m := &AppMetadata{
+func TestNamespaceLabels_ReturnsOnlyOwnershipLabels(t *testing.T) {
+	m := &OwnershipMetadata{
+		AgileReleaseTrain: "ART Platform",
+		AgileTeam:         "Team Falcon",
+	}
+
+	labels := m.NamespaceLabels(testPrefix)
+
+	if len(labels) != 2 {
+		t.Errorf("expected exactly 2 namespace labels, got %d: %v", len(labels), labels)
+	}
+	if labels[testPrefix+"agile-release-train"] != "art-platform" {
+		t.Errorf("agile-release-train = %q, want %q", labels[testPrefix+"agile-release-train"], "art-platform")
+	}
+	if labels[testPrefix+"agile-team"] != "team-falcon" {
+		t.Errorf("agile-team = %q, want %q", labels[testPrefix+"agile-team"], "team-falcon")
+	}
+	for _, forbidden := range []string{
+		testPrefix + "app-id", testPrefix + "app-name",
+		testPrefix + "lifecycle", testPrefix + "criticality",
+	} {
+		if _, ok := labels[forbidden]; ok {
+			t.Errorf("namespace labels must not contain workload key %q", forbidden)
+		}
+	}
+}
+
+func TestNamespaceLabels_OmitsEmptyOwnershipFields(t *testing.T) {
+	labels := (&OwnershipMetadata{}).NamespaceLabels(testPrefix)
+	if len(labels) != 0 {
+		t.Errorf("expected empty map when ART and team are empty, got %v", labels)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ApplicationMetadata.WorkloadLabels
+// ---------------------------------------------------------------------------
+
+func TestWorkloadLabels_ReturnsOnlyApplicationLabels(t *testing.T) {
+	m := &ApplicationMetadata{
 		ApplicationID:     "123",
 		ApplicationName:   "Platform App",
 		Lifecycle:         "Production",
@@ -70,51 +111,56 @@ func TestLabels_PopulatesAllFields(t *testing.T) {
 		DevelopmentType:   "In House",
 		SourcingType:      "Internal",
 		FacingInternet:    "true",
-		AgileReleaseTrain: "ART Platform",
-		AgileTeam:         "Team Falcon",
 	}
 
-	labels := m.Labels()
+	labels := m.WorkloadLabels(testPrefix)
 
 	expected := map[string]string{
-		"next-insight.io/app-id":              "123",
-		"next-insight.io/app-name":            "platform-app",
-		"next-insight.io/lifecycle":           "production",
-		"next-insight.io/lifecycle-decision":  "keep",
-		"next-insight.io/criticality":         "high",
-		"next-insight.io/complexity":          "medium",
-		"next-insight.io/category":            "infrastructure",
-		"next-insight.io/development-type":    "in-house",
-		"next-insight.io/sourcing-type":       "internal",
-		"next-insight.io/facing-internet":     "true",
-		"next-insight.io/agile-release-train": "art-platform",
-		"next-insight.io/agile-team":          "team-falcon",
+		testPrefix + "app-id":             "123",
+		testPrefix + "app-name":           "platform-app",
+		testPrefix + "lifecycle":          "production",
+		testPrefix + "lifecycle-decision": "keep",
+		testPrefix + "criticality":        "high",
+		testPrefix + "complexity":         "medium",
+		testPrefix + "category":           "infrastructure",
+		testPrefix + "development-type":   "in-house",
+		testPrefix + "sourcing-type":      "internal",
+		testPrefix + "facing-internet":    "true",
 	}
-
+	if len(labels) != len(expected) {
+		t.Errorf("expected %d workload labels, got %d: %v", len(expected), len(labels), labels)
+	}
 	for key, want := range expected {
 		if got := labels[key]; got != want {
 			t.Errorf("label %q = %q, want %q", key, got, want)
 		}
 	}
+	for _, forbidden := range []string{
+		testPrefix + "agile-release-train",
+		testPrefix + "agile-team",
+	} {
+		if _, ok := labels[forbidden]; ok {
+			t.Errorf("workload labels must not contain namespace key %q", forbidden)
+		}
+	}
 }
 
-func TestLabels_OmitsEmptyFields(t *testing.T) {
-	// Only ApplicationID set — all other fields empty.
-	m := &AppMetadata{ApplicationID: "42"}
-	labels := m.Labels()
+func TestWorkloadLabels_OmitsEmptyFields(t *testing.T) {
+	m := &ApplicationMetadata{ApplicationID: "42"}
+	labels := m.WorkloadLabels(testPrefix)
 
 	if len(labels) != 1 {
-		t.Errorf("expected 1 label for a mostly-empty AppMetadata, got %d: %v", len(labels), labels)
+		t.Errorf("expected 1 workload label, got %d: %v", len(labels), labels)
 	}
-	if labels["next-insight.io/app-id"] != "42" {
-		t.Errorf("expected app-id label to be '42', got %q", labels["next-insight.io/app-id"])
+	if labels[testPrefix+"app-id"] != "42" {
+		t.Errorf("app-id = %q, want %q", labels[testPrefix+"app-id"], "42")
 	}
 }
 
-func TestLabels_EmptyMetadataReturnsEmptyMap(t *testing.T) {
-	labels := (&AppMetadata{}).Labels()
+func TestWorkloadLabels_EmptyMetadataReturnsEmptyMap(t *testing.T) {
+	labels := (&ApplicationMetadata{}).WorkloadLabels(testPrefix)
 	if len(labels) != 0 {
-		t.Errorf("expected empty label map, got %v", labels)
+		t.Errorf("expected empty map, got %v", labels)
 	}
 }
 
@@ -122,10 +168,7 @@ func TestLabels_EmptyMetadataReturnsEmptyMap(t *testing.T) {
 // buildMetadata — first-wins for ART and Agile Team
 // ---------------------------------------------------------------------------
 
-func TestBuildMetadata_FirstGroupWins(t *testing.T) {
-	app := &applicationResponse{}
-	app.Data.Name = "My App"
-
+func TestBuildOwnershipMetadata_FirstGroupWins(t *testing.T) {
 	groups := &groupsResponse{
 		Data: []groupItem{
 			{Name: "ART-One", Type: groupTypeART},
@@ -135,7 +178,7 @@ func TestBuildMetadata_FirstGroupWins(t *testing.T) {
 		},
 	}
 
-	meta := buildMetadata("1", app, groups)
+	meta := buildOwnershipMetadata(groups)
 
 	if meta.AgileReleaseTrain != "ART-One" {
 		t.Errorf("AgileReleaseTrain = %q, want %q", meta.AgileReleaseTrain, "ART-One")
@@ -145,15 +188,14 @@ func TestBuildMetadata_FirstGroupWins(t *testing.T) {
 	}
 }
 
-func TestBuildMetadata_UnknownGroupTypeIgnored(t *testing.T) {
-	app := &applicationResponse{}
+func TestBuildOwnershipMetadata_UnknownGroupTypeIgnored(t *testing.T) {
 	groups := &groupsResponse{
 		Data: []groupItem{
 			{Name: "Some Portfolio", Type: "Portfolio"},
 		},
 	}
 
-	meta := buildMetadata("5", app, groups)
+	meta := buildOwnershipMetadata(groups)
 
 	if meta.AgileReleaseTrain != "" || meta.AgileTeam != "" {
 		t.Errorf("expected empty ART and AgileTeam for unknown group type, got ART=%q Team=%q",
@@ -161,12 +203,11 @@ func TestBuildMetadata_UnknownGroupTypeIgnored(t *testing.T) {
 	}
 }
 
-func TestBuildMetadata_FacingInternetLowercased(t *testing.T) {
+func TestBuildApplicationMetadata_FacingInternetLowercased(t *testing.T) {
 	app := &applicationResponse{}
 	app.Data.FacingInternet = "TRUE"
-	groups := &groupsResponse{}
 
-	meta := buildMetadata("3", app, groups)
+	meta := buildApplicationMetadata("3", app)
 
 	if meta.FacingInternet != "true" {
 		t.Errorf("FacingInternet = %q, want %q", meta.FacingInternet, "true")
