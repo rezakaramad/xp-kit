@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0](https://github.com/rezakaramad/crossplane-toolkit/compare/modules/runner/v0.0.1...modules/runner/v0.1.0) (2026-05-29)
+
+
+### Features
+
+* **runner:** add ContextEnricher and StampMetadata for metadata enrichment ([09d9d2e](https://github.com/rezakaramad/crossplane-toolkit/commit/09d9d2e32c7fb492d0f1a09932eadc91a1f67574))
+
 ## [0.2.0](https://github.com/rezakaramad/crossplane-toolkit/compare/modules/runner/v0.1.1...modules/runner/v0.2.0) (2026-05-15)
 
 
