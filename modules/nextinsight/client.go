@@ -19,7 +19,7 @@ import (
 // who owns the app, how critical it is, which ART and team it belongs to.
 // Kept as an interface so tests can stand in with a fake instead of hitting the live API.
 type Client interface {
-	FetchAppMetadata(ctx context.Context, appID string) (*AppMetadata, error)
+	FetchMetadata(ctx context.Context, appID string) (*OwnershipMetadata, *ApplicationMetadata, error)
 }
 
 // New returns a Client that calls the Next-Insight API at baseURL using the
@@ -40,22 +40,22 @@ type client struct {
 	http    *http.Client
 }
 
-// The real implementation of FetchAppMetadata that calls the Next-Insight API endpoints to get application details
-func (c *client) FetchAppMetadata(ctx context.Context, appID string) (*AppMetadata, error) {
+// FetchMetadata calls both the application and groups endpoints and returns
+// ownership and application metadata as separate values.
+func (c *client) FetchMetadata(ctx context.Context, appID string) (*OwnershipMetadata, *ApplicationMetadata, error) {
 	// Get the application details using the /API/rest/v3/applications/{id} endpoint
 	app, err := c.fetchApplication(ctx, appID)
 	if err != nil {
-		return nil, fmt.Errorf("fetch application %s: %w", appID, err)
+		return nil, nil, fmt.Errorf("fetch application %s: %w", appID, err)
 	}
 
 	// Get the groups associated with the application using the /API/rest/v3/applications/{id}/groups endpoint
 	groups, err := c.fetchGroups(ctx, appID)
 	if err != nil {
-		return nil, fmt.Errorf("fetch groups for application %s: %w", appID, err)
+		return nil, nil, fmt.Errorf("fetch groups for application %s: %w", appID, err)
 	}
 
-	// Build and return the 'AppMetadata' from the application and groups responses
-	return buildMetadata(appID, app, groups), nil
+	return buildOwnershipMetadata(groups), buildApplicationMetadata(appID, app), nil
 }
 
 // JSON shape we expect back from the API for this endpoint
@@ -172,10 +172,9 @@ const (
 	groupTypeAgileTeam = "Agile Team"
 )
 
-// Constructs an 'AppMetadata' value from the application and groups responses from the Next-Insight API.
-// Takes already-fetched API data and projects a subset of it into an 'AppMetadata'
-func buildMetadata(appID string, app *applicationResponse, groups *groupsResponse) *AppMetadata {
-	metadata := &AppMetadata{
+// buildApplicationMetadata projects the application response into an ApplicationMetadata.
+func buildApplicationMetadata(appID string, app *applicationResponse) *ApplicationMetadata {
+	return &ApplicationMetadata{
 		ApplicationID:     appID,
 		ApplicationName:   app.Data.Name,
 		Lifecycle:         app.Data.Lifecycle.Name,
@@ -187,22 +186,23 @@ func buildMetadata(appID string, app *applicationResponse, groups *groupsRespons
 		SourcingType:      app.Data.SourcingType.Name,
 		FacingInternet:    strings.ToLower(app.Data.FacingInternet),
 	}
+}
 
-	// The main application payload doesn't directly include ART or Agile Team information, but we can get that from the groups endpoint.
+// buildOwnershipMetadata projects the groups response into an OwnershipMetadata.
+// Keeps only the first ART and Agile Team to stay deterministic.
+func buildOwnershipMetadata(groups *groupsResponse) *OwnershipMetadata {
+	metadata := &OwnershipMetadata{}
 	for _, group := range groups.Data {
 		switch group.Type {
 		case groupTypeART:
-			// Keep the first value we see so the model stays deterministic.
 			if metadata.AgileReleaseTrain == "" {
 				metadata.AgileReleaseTrain = group.Name
 			}
 		case groupTypeAgileTeam:
-			// Keep the first value we see so the model stays deterministic.
 			if metadata.AgileTeam == "" {
 				metadata.AgileTeam = group.Name
 			}
 		}
 	}
-
 	return metadata
 }
