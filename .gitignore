@@ -23,9 +23,8 @@ profile.cov
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
-go.work
-go.work.sum
+# go.work is committed — this is a monorepo where all modules develop together.
+# CI uses the workspace so intra-repo deps resolve locally (no proxy caching issues).
 
 # env file
 .env

@@ -1,0 +1,11 @@
+go 1.26.2
+
+use (
+	./cmd/gen-xrd
+	./functions/xtenant-render
+	./functions/xtenant-validate
+	./modules/generator
+	./modules/nextinsight
+	./modules/runner
+	./types/xtenant
+)
