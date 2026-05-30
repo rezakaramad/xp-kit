@@ -1,5 +1,6 @@
 // Package main implements a Crossplane Composition Function that validates
 // and gates XTenant resources before provisioning begins.
+// It uses Next-Insight for optional team validation.
 package main
 
 import (
