@@ -30,11 +30,11 @@ type Cluster struct {
 // +kubebuilder:validation:XValidation:rule="self.metadata.name.size() <= 20",message="Tenant name must be 20 characters or less"
 // +kubebuilder:validation:XValidation:rule="self.metadata.name.matches('^[a-z0-9]+(-[a-z0-9]+)*$')",message="Tenant name must be lowercase alphanumeric with hyphens"
 // +kubebuilder:validation:XValidation:rule="!self.metadata.name.matches('(^|-)(dev|test|stage|prod)(-|$)')",message="Tenant name must not include reserved environment segments (dev, test, stage, prod)"
-// +kubebuilder:validation:XValidation:rule="oldSelf == null || (self.spec.dnsName == oldSelf.spec.dnsName && self.spec.owner == oldSelf.spec.owner)",message="spec.dnsName and spec.owner are immutable after creation"
+// +kubebuilder:validation:XValidation:rule="oldSelf == null || self.spec.dnsName == oldSelf.spec.dnsName",message="spec.dnsName is immutable after creation"
 // +kubebuilder:validation:XValidation:rule="oldSelf == null || !oldSelf.spec.approved || self.spec.approved",message="spec.approved cannot be set back to false once approved"
 // +kubebuilder:printcolumn:name="Tenant",type="string",JSONPath=".metadata.name"
 // +kubebuilder:printcolumn:name="DNS",type="string",JSONPath=".spec.dnsName"
-// +kubebuilder:printcolumn:name="Team",type="string",JSONPath=".spec.owner.team"
+// +kubebuilder:printcolumn:name="Team",type="string",JSONPath=".spec.teamId"
 // +kubebuilder:printcolumn:name="Resources",type="integer",JSONPath=".status.rendered.resources"
 // +kubebuilder:printcolumn:name="Approved",type="boolean",JSONPath=".spec.approved"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase"
@@ -66,9 +66,6 @@ type XTenantSpec struct {
 	// +kubebuilder:validation:MaxLength=128
 	DisplayName string `json:"displayName,omitempty"`
 
-	// owner identifies the team responsible for this tenant. Immutable after creation.
-	Owner OwnerSpec `json:"owner"`
-
 	// argocd contains ArgoCD-specific configuration.
 	ArgoCD ArgoCDSpec `json:"argocd,omitempty"`
 
@@ -81,16 +78,15 @@ type XTenantSpec struct {
 	//
 	// +kubebuilder:default=false
 	Approved bool `json:"approved,omitempty"`
-}
 
-// OwnerSpec identifies the team responsible for the tenant.
-type OwnerSpec struct {
-	// +kubebuilder:validation:MinLength=1
+	// teamId is the Next-Insight identifier for the Agile team that owns this
+	// tenant. When set, the render function enriches namespace labels with
+	// ownership metadata (Agile Release Train and Agile Team) fetched from
+	// the Next-Insight API.
+	//
 	// +kubebuilder:validation:MaxLength=128
-	Team string `json:"team"`
-
-	// +kubebuilder:validation:MaxLength=256
-	Email string `json:"email,omitempty"`
+	// +optional
+	TeamID string `json:"teamId,omitempty"`
 }
 
 // ArgoCDSpec contains ArgoCD-specific configuration for the tenant.
