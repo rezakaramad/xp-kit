@@ -1,8 +1,8 @@
 package nextinsight
 
-// OwnershipMetadata holds the team and ART ownership data for a Next-Insight application.
+// TenantMetadata holds the team and ART ownership data for a Next-Insight application.
 // It is sourced from the /groups endpoint and describes who owns the tenant boundary.
-type OwnershipMetadata struct {
+type TenantMetadata struct {
 	// AgileReleaseTrain is the first Agile Release Train group associated with the application.
 	AgileReleaseTrain string
 
@@ -25,7 +25,7 @@ type ApplicationMetadata struct {
 	FacingInternet    string
 }
 
-// NamespaceLabels returns Kubernetes-safe labels appropriate for Namespace objects
+// TenantLabels returns Kubernetes-safe labels appropriate for Namespace objects
 // and other resources that represent a tenant boundary.
 // prefix is the label key prefix, e.g. "nextinsight.rezakara.demo/" — supplied by
 // the caller so it can be configured per Composition without hardcoding it here.
@@ -33,7 +33,7 @@ type ApplicationMetadata struct {
 // Returned keys (with given prefix):
 //   - <prefix>agile-release-train
 //   - <prefix>agile-team
-func (m *OwnershipMetadata) NamespaceLabels(prefix string) map[string]string {
+func (m *TenantMetadata) TenantLabels(prefix string) map[string]string {
 	labels := make(map[string]string)
 	set(labels, prefix+"agile-release-train", normalize(m.AgileReleaseTrain))
 	set(labels, prefix+"agile-team", normalize(m.AgileTeam))

@@ -91,17 +91,10 @@ func TestGet_ErrorOnInvalidJSON(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// FetchMetadata — integration through the full client stack
+// FetchTenantMetadata
 // ---------------------------------------------------------------------------
 
-func TestFetchMetadata_HappyPath(t *testing.T) {
-	appResp := applicationResponse{}
-	appResp.Data.Name = "My Platform App"
-	appResp.Data.Lifecycle.Name = "Production"
-	appResp.Data.Criticality.Name = "High"
-	appResp.Data.DevelopmentType.Name = "In House"
-	appResp.Data.FacingInternet = "True"
-
+func TestFetchTenantMetadata_HappyPath(t *testing.T) {
 	groupsResp := groupsResponse{
 		Data: []groupItem{
 			{Name: "ART-Platform", Type: groupTypeART},
@@ -112,30 +105,98 @@ func TestFetchMetadata_HappyPath(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/API/rest/v3/applications/42", func(w http.ResponseWriter, _ *http.Request) {
-		serveJSON(t, w, appResp)
-	})
 	mux.HandleFunc("/API/rest/v3/applications/42/groups", func(w http.ResponseWriter, _ *http.Request) {
 		serveJSON(t, w, groupsResp)
 	})
 
 	c, _ := newTestClient(t, mux)
 
-	ownership, app, err := c.FetchMetadata(context.Background(), "42")
+	tenant, err := c.FetchTenantMetadata(context.Background(), "42")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if tenant.AgileReleaseTrain != "ART-Platform" {
+		t.Errorf("AgileReleaseTrain = %q, want %q", tenant.AgileReleaseTrain, "ART-Platform")
+	}
+	if tenant.AgileTeam != "Team Falcon" {
+		t.Errorf("AgileTeam = %q, want %q", tenant.AgileTeam, "Team Falcon")
+	}
+}
+
+func TestFetchTenantMetadata_GroupsEndpointError(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/API/rest/v3/applications/7/groups", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+
+	c, _ := newTestClient(t, mux)
+
+	_, err := c.FetchTenantMetadata(context.Background(), "7")
+	if err == nil {
+		t.Fatal("expected error when groups endpoint fails")
+	}
+	if !strings.Contains(err.Error(), "fetch groups") {
+		t.Errorf("error should wrap fetch groups error, got: %v", err)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// FetchTenantLabels
+// ---------------------------------------------------------------------------
+
+func TestFetchTenantLabels_HappyPath(t *testing.T) {
+	groupsResp := groupsResponse{
+		Data: []groupItem{
+			{Name: "ART-Platform", Type: groupTypeART},
+			{Name: "Team Falcon", Type: groupTypeAgileTeam},
+		},
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/API/rest/v3/applications/42/groups", func(w http.ResponseWriter, _ *http.Request) {
+		serveJSON(t, w, groupsResp)
+	})
+
+	c, _ := newTestClient(t, mux)
+
+	const prefix = "nextinsight.rezakara.demo/"
+	labels, err := c.FetchTenantLabels(context.Background(), "42", prefix)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if labels[prefix+"agile-release-train"] != "art-platform" {
+		t.Errorf("agile-release-train = %q, want %q", labels[prefix+"agile-release-train"], "art-platform")
+	}
+	if labels[prefix+"agile-team"] != "team-falcon" {
+		t.Errorf("agile-team = %q, want %q", labels[prefix+"agile-team"], "team-falcon")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// FetchApplicationMetadata
+// ---------------------------------------------------------------------------
+
+func TestFetchApplicationMetadata_HappyPath(t *testing.T) {
+	appResp := applicationResponse{}
+	appResp.Data.Name = "My Platform App"
+	appResp.Data.Lifecycle.Name = "Production"
+	appResp.Data.Criticality.Name = "High"
+	appResp.Data.DevelopmentType.Name = "In House"
+	appResp.Data.FacingInternet = "True"
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/API/rest/v3/applications/42", func(w http.ResponseWriter, _ *http.Request) {
+		serveJSON(t, w, appResp)
+	})
+
+	c, _ := newTestClient(t, mux)
+
+	app, err := c.FetchApplicationMetadata(context.Background(), "42")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Ownership fields
-	if ownership.AgileReleaseTrain != "ART-Platform" {
-		t.Errorf("AgileReleaseTrain = %q, want %q", ownership.AgileReleaseTrain, "ART-Platform")
-	}
-	if ownership.AgileTeam != "Team Falcon" {
-		t.Errorf("AgileTeam = %q, want %q", ownership.AgileTeam, "Team Falcon")
-	}
-
-	// Application fields
-	appChecks := []struct {
+	checks := []struct {
 		field string
 		got   string
 		want  string
@@ -147,14 +208,14 @@ func TestFetchMetadata_HappyPath(t *testing.T) {
 		{"DevelopmentType", app.DevelopmentType, "In House"},
 		{"FacingInternet", app.FacingInternet, "true"},
 	}
-	for _, tc := range appChecks {
+	for _, tc := range checks {
 		if tc.got != tc.want {
 			t.Errorf("%s = %q, want %q", tc.field, tc.got, tc.want)
 		}
 	}
 }
 
-func TestFetchMetadata_ApplicationEndpointError(t *testing.T) {
+func TestFetchApplicationMetadata_ApplicationEndpointError(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/API/rest/v3/applications/99", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -162,35 +223,12 @@ func TestFetchMetadata_ApplicationEndpointError(t *testing.T) {
 
 	c, _ := newTestClient(t, mux)
 
-	_, _, err := c.FetchMetadata(context.Background(), "99")
+	_, err := c.FetchApplicationMetadata(context.Background(), "99")
 	if err == nil {
 		t.Fatal("expected error when application endpoint fails")
 	}
 	if !strings.Contains(err.Error(), "fetch application") {
-		t.Errorf("error message should wrap fetch application error, got: %v", err)
-	}
-}
-
-func TestFetchMetadata_GroupsEndpointError(t *testing.T) {
-	appResp := applicationResponse{}
-	appResp.Data.Name = "Some App"
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/API/rest/v3/applications/7", func(w http.ResponseWriter, _ *http.Request) {
-		serveJSON(t, w, appResp)
-	})
-	mux.HandleFunc("/API/rest/v3/applications/7/groups", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-	})
-
-	c, _ := newTestClient(t, mux)
-
-	_, _, err := c.FetchMetadata(context.Background(), "7")
-	if err == nil {
-		t.Fatal("expected error when groups endpoint fails")
-	}
-	if !strings.Contains(err.Error(), "fetch groups") {
-		t.Errorf("error message should wrap fetch groups error, got: %v", err)
+		t.Errorf("error should wrap fetch application error, got: %v", err)
 	}
 }
 
@@ -202,5 +240,39 @@ func TestNew_StripsTrailingSlash(t *testing.T) {
 	c := New("https://app.next-insight.com/", "tok").(*client)
 	if strings.HasSuffix(c.baseURL, "/") {
 		t.Errorf("baseURL should not have trailing slash, got %q", c.baseURL)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// TeamIDExists
+// ---------------------------------------------------------------------------
+
+func TestTeamIDExists_HappyPath(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/API/rest/v3/applications/42/groups", func(w http.ResponseWriter, _ *http.Request) {
+		serveJSON(t, w, groupsResponse{Data: []groupItem{{Name: "ART-Platform", Type: groupTypeART}}})
+	})
+
+	c, _ := newTestClient(t, mux)
+
+	if err := c.TeamExists(context.Background(), "42"); err != nil {
+		t.Errorf("expected nil, got %v", err)
+	}
+}
+
+func TestTeamIDExists_NotFound(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/API/rest/v3/applications/99/groups", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	c, _ := newTestClient(t, mux)
+
+	err := c.TeamExists(context.Background(), "99")
+	if err == nil {
+		t.Fatal("expected an error for unknown team ID")
+	}
+	if !strings.Contains(err.Error(), "99") {
+		t.Errorf("error should mention the team ID, got: %v", err)
 	}
 }

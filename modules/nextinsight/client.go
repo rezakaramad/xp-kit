@@ -14,12 +14,25 @@ import (
 	"time"
 )
 
-// Client is the single door into Next-Insight: you knock with an app ID,
-// and it hands back everything we need to brand a Kubernetes tenant —
-// who owns the app, how critical it is, which ART and team it belongs to.
+// Client is the interface for querying Next-Insight metadata.
 // Kept as an interface so tests can stand in with a fake instead of hitting the live API.
 type Client interface {
-	FetchMetadata(ctx context.Context, appID string) (*OwnershipMetadata, *ApplicationMetadata, error)
+	// FetchTenantMetadata returns ART and Agile Team ownership for the given
+	// application ID by calling the /groups endpoint.
+	FetchTenantMetadata(ctx context.Context, appID string) (*TenantMetadata, error)
+
+	// FetchTenantLabels returns Kubernetes labels derived from tenant ownership
+	// metadata, ready to stamp onto Namespace-boundary resources.
+	// It is the single call a render function needs — no intermediate struct required.
+	FetchTenantLabels(ctx context.Context, appID, labelPrefix string) (map[string]string, error)
+
+	// FetchApplicationMetadata returns application classification data for the
+	// given application ID by calling the /applications/{id} endpoint.
+	FetchApplicationMetadata(ctx context.Context, appID string) (*ApplicationMetadata, error)
+
+	// TeamExists returns nil when the given ID resolves to a known entry in
+	// Next-Insight, or an error if it does not exist or the API is unreachable.
+	TeamExists(ctx context.Context, teamID string) error
 }
 
 // New returns a Client that calls the Next-Insight API at baseURL using the
@@ -40,22 +53,41 @@ type client struct {
 	http    *http.Client
 }
 
-// FetchMetadata calls both the application and groups endpoints and returns
-// ownership and application metadata as separate values.
-func (c *client) FetchMetadata(ctx context.Context, appID string) (*OwnershipMetadata, *ApplicationMetadata, error) {
-	// Get the application details using the /API/rest/v3/applications/{id} endpoint
-	app, err := c.fetchApplication(ctx, appID)
-	if err != nil {
-		return nil, nil, fmt.Errorf("fetch application %s: %w", appID, err)
-	}
-
-	// Get the groups associated with the application using the /API/rest/v3/applications/{id}/groups endpoint
+// FetchTenantMetadata calls the /groups endpoint and returns ART and Agile Team ownership.
+func (c *client) FetchTenantMetadata(ctx context.Context, appID string) (*TenantMetadata, error) {
 	groups, err := c.fetchGroups(ctx, appID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("fetch groups for application %s: %w", appID, err)
+		return nil, fmt.Errorf("fetch groups for application %s: %w", appID, err)
 	}
+	return buildOwnershipMetadata(groups), nil
+}
 
-	return buildOwnershipMetadata(groups), buildApplicationMetadata(appID, app), nil
+// FetchTenantLabels returns Kubernetes labels derived from tenant ownership metadata.
+func (c *client) FetchTenantLabels(ctx context.Context, appID, labelPrefix string) (map[string]string, error) {
+	meta, err := c.FetchTenantMetadata(ctx, appID)
+	if err != nil {
+		return nil, err
+	}
+	return meta.TenantLabels(labelPrefix), nil
+}
+
+// FetchApplicationMetadata calls the /applications/{id} endpoint and returns application classification data.
+func (c *client) FetchApplicationMetadata(ctx context.Context, appID string) (*ApplicationMetadata, error) {
+	app, err := c.fetchApplication(ctx, appID)
+	if err != nil {
+		return nil, fmt.Errorf("fetch application %s: %w", appID, err)
+	}
+	return buildApplicationMetadata(appID, app), nil
+}
+
+// TeamExists returns nil when the given ID resolves to a known application in Next-Insight.
+// It calls the /groups endpoint — a successful response confirms the ID is valid.
+func (c *client) TeamExists(ctx context.Context, teamID string) error {
+	_, err := c.fetchGroups(ctx, teamID)
+	if err != nil {
+		return fmt.Errorf("team %q not found in Next-Insight: %w", teamID, err)
+	}
+	return nil
 }
 
 // JSON shape we expect back from the API for this endpoint
@@ -190,8 +222,8 @@ func buildApplicationMetadata(appID string, app *applicationResponse) *Applicati
 
 // buildOwnershipMetadata projects the groups response into an OwnershipMetadata.
 // Keeps only the first ART and Agile Team to stay deterministic.
-func buildOwnershipMetadata(groups *groupsResponse) *OwnershipMetadata {
-	metadata := &OwnershipMetadata{}
+func buildOwnershipMetadata(groups *groupsResponse) *TenantMetadata {
+	metadata := &TenantMetadata{}
 	for _, group := range groups.Data {
 		switch group.Type {
 		case groupTypeART:

@@ -62,12 +62,12 @@ const testPrefix = "nextinsight.rezakara.demo/"
 // ---------------------------------------------------------------------------
 
 func TestNamespaceLabels_ReturnsOnlyOwnershipLabels(t *testing.T) {
-	m := &OwnershipMetadata{
+	m := &TenantMetadata{
 		AgileReleaseTrain: "ART Platform",
 		AgileTeam:         "Team Falcon",
 	}
 
-	labels := m.NamespaceLabels(testPrefix)
+	labels := m.TenantLabels(testPrefix)
 
 	if len(labels) != 2 {
 		t.Errorf("expected exactly 2 namespace labels, got %d: %v", len(labels), labels)
@@ -89,7 +89,7 @@ func TestNamespaceLabels_ReturnsOnlyOwnershipLabels(t *testing.T) {
 }
 
 func TestNamespaceLabels_OmitsEmptyOwnershipFields(t *testing.T) {
-	labels := (&OwnershipMetadata{}).NamespaceLabels(testPrefix)
+	labels := (&TenantMetadata{}).TenantLabels(testPrefix)
 	if len(labels) != 0 {
 		t.Errorf("expected empty map when ART and team are empty, got %v", labels)
 	}
