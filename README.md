@@ -62,69 +62,132 @@ $ task check:functions
 ```
 
 ## Release flow
-There are two moving parts here:
 
-- [release-please](https://github.com/googleapis/release-please) watches `main`, updates the component changelogs, and creates the GitHub Release entries for the configured components.
-- Only some components have a tag-triggered publish workflow. For the rest, the version tag itself is the release artifact for Go module consumers.
+There are two moving parts:
 
-Use this sequence:
+- [release-please](https://github.com/googleapis/release-please) watches `main`, bumps changelogs, and creates GitHub Release entries for the configured components.
+- Tags trigger the actual publish workflows. Without a tag, nothing is published.
 
-1. Push your work to a feature branch.
-2. Open a PR into `main`.
-3. Review and merge it.
-4. Let [release-please](https://github.com/googleapis/release-please) open or update the release PR from `main`.
-5. Merge the release PR.
-6. Create and push only the component tags you want to publish from `main`.
+### Component types and what their tags do
 
-For normal releases, do not create publish tags from feature branches.
+| Component | Tag format | What the tag publishes |
+| --- | --- | --- |
+| `functions/*` | `functions/<name>/v<semver>` | GHCR function package + runtime image |
+| `cmd/*` | `cmd/<name>/v<semver>` | Binary archives + checksums attached to the GitHub Release |
+| `modules/*`, `types/*` | `modules/<name>/v<semver>`, `types/<name>/v<semver>` | The semver tag itself — no binary or OCI artifact; Go module consumers resolve directly from the tag |
 
-The version source of truth is:
+### Tag ordering rules
 
-- `release-please-config.json` defines which components participate in releases.
-- `.release-please-manifest.json` records the current released version for each component.
-- If you intentionally reset release history or want to restart from a new baseline, update `.release-please-manifest.json` before creating new tags.
+The repo is a monorepo where functions depend on shared libraries (`modules/*`, `types/*`). The **Go module proxy caches versions immutably**: once it fetches a tag, it keeps that snapshot forever. This means:
 
-**Release tags** used in this repo:
+- **Never delete and recreate a version tag.** The proxy will never pick up the new content. Bump the patch version instead.
+- **Tag dependencies before dependents.** Shared libraries must be tagged and proxy-indexed before function Docker release builds can resolve them. The order is:
 
-- Functions: `functions/<name>/v<semver>`
-- CLI binaries: `cmd/<name>/v<semver>`
-- Go libraries: `modules/<name>/v<semver>` and `types/<name>/v<semver>`
-
-Example:
-
-```sh
-git tag functions/xtenant-validate/v0.0.1
-git tag functions/xtenant-render/v0.0.1
-git push origin functions/xtenant-validate/v0.0.1 functions/xtenant-render/v0.0.1
+```
+types/* → modules/* → functions/* (and cmd/*)
 ```
 
-What each tag does:
+If you tag a function before its library deps are proxy-indexed, the function's Docker build will compile against stale cached code.
 
-- `functions/xtenant-validate/v0.0.1` publishes `ghcr.io/<owner>/function-xtenant-validate:v0.0.1`
-- `functions/xtenant-render/v0.0.1` publishes `ghcr.io/<owner>/function-xtenant-render:v0.0.1`
-- `cmd/gen-xrd/v0.0.1` triggers the CLI binary release workflow and uploads archives plus checksums to the GitHub Release
-- `modules/runner/v0.0.1` creates the version tag consumed by `go get`; there is no separate binary/package publishing workflow
-- `types/xtenant/v0.0.1` creates the version tag consumed by `go get`; there is no separate binary/package publishing workflow
+> CI tests (lint, unit-test) are not affected by this ordering because `go.work` is committed and CI resolves all workspace modules from the local checkout, bypassing the proxy entirely.
 
-What gets published for each component type:
+### Step-by-step release sequence
 
-- Functions: GitHub Release entry from `release-please`, plus GHCR function package and runtime image from the function tag.
-- CLI tools under `cmd/`: GitHub Release entry from `release-please`, plus release assets (archives and checksums) from the CLI tag.
-- Go libraries under `modules/` and `types/`: GitHub Release entry from `release-please`, plus the semver git tag consumed by the Go module system. No separate binary or OCI package is published.
+**1. Develop on a feature branch**
 
-When you look at GitHub Packages, you will usually see both `function-...` and `...-runtime` images:
+```sh
+git checkout -b feat/my-change
+# ... make changes across types/, modules/, functions/ ...
+git push origin feat/my-change
+```
 
-- `function-...` is the Crossplane function package you install from a `Function` resource. It is built from the `.xpkg` artifact.
+**2. Update `go.mod` references before merging**
+
+If you bumped an API in a shared library that a function depends on, you need to reference the *upcoming* version in the function's `go.mod` before merging. The sequence is:
+
+```sh
+# a. Decide the new version for the library (e.g. types/xtenant v0.2.0)
+# b. Update the function's go.mod to require that version
+# c. Run go mod tidy in the function directory
+# d. Commit everything — go.mod, go.sum — on the feature branch
+```
+
+The library tag does not need to exist yet at this point. CI will compile fine because `go.work` resolves the library from the local tree.
+
+**3. Open a PR, review, and merge into `main`**
+
+**4. Let release-please open the release PR**
+
+release-please reads conventional commits and bumps the version for each affected component in `.release-please-manifest.json`. It opens (or updates) a single release PR that touches all changed components at once.
+
+> If release-please misses a component, check that your commit scope matches the package path exactly.
+> For example `feat!(types/xtenant):` not `feat!(xtenant):`.
+
+**5. Merge the release PR**
+
+Merging the release PR does two things automatically: it updates `.release-please-manifest.json` on `main` and creates the GitHub Release entries. Tags are **not** created by release-please in this repo — you create them manually in step 6.
+
+**6. Tag and push shared libraries first**
+
+After the release PR is merged, `main` is the right base. Tag libraries in dependency order:
+
+```sh
+git pull
+git tag types/xtenant/v0.2.0
+git tag modules/nextinsight/v0.2.0
+git push origin types/xtenant/v0.2.0 modules/nextinsight/v0.2.0
+```
+
+Wait a few seconds for the Go module proxy to index the new tags:
+
+```sh
+curl -s "https://proxy.golang.org/github.com/rezakaramad/crossplane-toolkit/types/xtenant/@v/v0.2.0.info"
+curl -s "https://proxy.golang.org/github.com/rezakaramad/crossplane-toolkit/modules/nextinsight/@v/v0.2.0.info"
+```
+
+Both should return a JSON object with a `"Version"` field before you proceed.
+
+**7. Tag functions (and CLI tools) last**
+
+```sh
+git tag functions/xtenant-render/v0.1.0
+git tag functions/xtenant-validate/v0.1.0
+git push origin functions/xtenant-render/v0.1.0 functions/xtenant-validate/v0.1.0
+```
+
+Each function tag triggers the build workflow, which builds the Docker runtime image and publishes the Crossplane function package to GHCR.
+
+### Letting Copilot execute this flow
+
+You can ask Copilot to perform the release instead of running the steps manually. It will read `.release-please-manifest.json` and recent `git log` to determine what changed and which versions to bump, check for an open or already-merged release PR, and run the tagging sequence in the right order including proxy verification.
+
+The only input it needs from you is a go-ahead on the release PR:
+
+> *"The release PR is merged — do the release"*
+
+or, if you want it to manage the PR too:
+
+> *"Open the release PR, wait for my approval, then tag everything"*
+
+Everything else — current versions, changed components, tag order, proxy verification — it can determine from the repo state.
+
+### Version source of truth
+
+- `release-please-config.json` — which components participate in automated releases.
+- `.release-please-manifest.json` — the current released version for each component. If you need to reset a component to a new baseline, update this file before creating new tags.
+
+### What ends up where
+
+- GitHub Releases — created by release-please after the release PR is merged.
+- GHCR function packages — created by the tag-triggered build workflow (`functions/<name>/v*`).
+- Go module tags — the semver tag itself; no workflow needed.
+- Function package files (`.xpkg`) are **not** attached to the GitHub Release; the installable artifacts live in GHCR.
+
+When you look at GitHub Packages you will see both `function-...` and `...-runtime` images:
+
+- `function-...` is the Crossplane function package you install from a `Function` resource.
 - `...-runtime` is the backing container image used by that package.
 - In normal usage, you want `function-...`, not `...-runtime`.
-
-GitHub Releases and GHCR package versions are related, but they are not the same thing:
-
-- GitHub Releases come from the release workflows.
-- GHCR function package versions come directly from the function tag that triggered publication.
-- Go module consumers resolve `modules/*` and `types/*` directly from the matching semver tag.
-- If you want Releases and Packages to stay aligned, publish functions with the same semver that was just merged by [release-please](https://github.com/googleapis/release-please) for that component.
-- Function package files are not uploaded to the GitHub Release page; the installable artifacts live in GHCR.
 
 ### Verification `gh` commands
 
