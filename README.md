@@ -61,311 +61,81 @@ $ task check:xtenant-validate
 $ task check:functions
 ```
 
-## How function publishing works
+## Functions: build and publish
 
-Each function produces two artifacts: a **runtime image** (a regular Docker image with the Go binary) and a **Crossplane package** (an `.xpkg` file that embeds the runtime image and is what you install on a cluster). Understanding both is necessary to add a new function or debug a publish failure.
+Each function tag produces two GHCR artifacts:
 
-### The two artifacts
+- **`ghcr.io/<owner>/<name>-runtime:<version>`** — distroless image with the Go binary (embedded, never installed directly)
+- **`ghcr.io/<owner>/function-<name>:<version>`** — the `.xpkg` Crossplane package that bundles the runtime image + `package/crossplane.yaml`; this is what you install on the cluster via a `Function` resource
 
-| Artifact | Registry path | What it is |
-| --- | --- | --- |
-| Runtime image | `ghcr.io/<owner>/<name>-runtime:<version>` | A distroless container image built from the function's `Dockerfile`. Contains only the compiled Go binary. Never installed directly — it is embedded inside the Crossplane package. |
-| Crossplane package | `ghcr.io/<owner>/function-<name>:<version>` | An `.xpkg` OCI artifact built by `crossplane xpkg build`. It bundles the runtime image together with the function metadata from `package/crossplane.yaml`. This is what you reference in a `Function` resource on the cluster. |
+Think of `.xpkg` like a Docker image for Crossplane: it packages your binary with the metadata Crossplane needs to run it as a composition function.
 
-### What each file in a function directory does
+**Required files per function:**
 
 ```
-functions/xtenant-validate/
-├── Dockerfile          # Builds the runtime image (Go binary in distroless)
+functions/<name>/
+├── Dockerfile            # two-stage: golang → distroless
 ├── package/
-│   └── crossplane.yaml # Function metadata — name, capabilities. One file, no schema needed.
-├── go.mod              # The function's own Go module
-└── *.go                # Function logic
+│   └── crossplane.yaml   # name + capabilities; name must match functionRef.name in Compositions
+└── go.mod
 ```
 
-**`Dockerfile`** — two-stage build: `golang` image compiles the binary, `distroless/static` runs it. The build workflow passes `GO_VERSION` and target platform as build args.
-
-**`package/crossplane.yaml`** — declares the function to Crossplane. Minimum viable content:
-
-```yaml
-apiVersion: meta.pkg.crossplane.io/v1beta1
-kind: Function
-metadata:
-  name: function-<name>
-spec:
-  capabilities:
-    - composition
-```
-
-The `name` here must match what you reference in `Composition` resources (`functionRef.name`).
-
-### How the build workflow assembles them
-
-1. **Build runtime image** — `docker build` from the function's `Dockerfile`, tagged as `...-runtime:<version>`
-2. **Push runtime image** — only on tag-triggered or dispatched runs
-3. **Build Crossplane package** — `crossplane xpkg build --package-root package/ --embed-runtime-image ...-runtime:<version>` produces `<name>.xpkg`
-4. **Push Crossplane package** — `crossplane xpkg push` uploads the `.xpkg` to GHCR as `function-<name>:<version>` and also as `latest`
-
-The runtime image must be built and available in the local Docker daemon before `xpkg build` runs, because the embed step pulls it from there.
-
-### Adding a new function
-
-1. Create `functions/<name>/` with a `Dockerfile`, `package/crossplane.yaml`, `go.mod`, and your Go code.
-2. Add it to `go.work` under the `use` block.
-3. Add it to `release-please-config.json` so release-please tracks its version.
-4. Add `<name>: 0.0.0` to `.release-please-manifest.json` as the initial baseline.
-5. The build workflow auto-discovers all directories under `functions/` — no workflow changes needed.
-
-### Verifying published packages
-
-```sh
-# List all GHCR packages from this repo
-gh api '/users/rezakaramad/packages?package_type=container&per_page=100' \
-  --jq '.[] | select(.repository.full_name == "rezakaramad/crossplane-toolkit") | .name'
-
-# Inspect versions of a specific package
-gh api '/users/rezakaramad/packages/container/function-xtenant-validate/versions' \
-  --jq '.[] | [.id, .metadata.container.tags[]] | @tsv'
-```
+**Adding a new function:** create the directory above, add it to `go.work` and to `release-please-config.json` + `.release-please-manifest.json` at `0.0.0`. The build workflow auto-discovers all `functions/` subdirectories.
 
 ## Release flow
 
-There are two moving parts:
+**What's automatic vs manual:**
 
-- [release-please](https://github.com/googleapis/release-please) watches `main`, bumps changelogs, and creates GitHub Release entries for the configured components.
-- Tags trigger the actual publish workflows. Without a tag, nothing is published.
-
-### What is automatic vs what you do manually
-
-| Step | Who does it | What it produces |
+| Step | Who | Result |
 | --- | --- | --- |
-| Bump changelogs + open release PR | release-please (automatic on merge to `main`) | A PR that updates `CHANGELOG.md` and `.release-please-manifest.json` |
-| Merge the release PR | **You** | Triggers release-please to create GitHub Releases and push version tags |
-| Tag and proxy-index shared libraries | **You** | The semver Git tag that `go get` resolves — no OCI artifact |
-| Push function/cmd tags | **You** | Triggers the build workflow → runtime image + Crossplane package in GHCR |
+| Open release PR | release-please (on merge to `main`) | Bumped changelogs + `.release-please-manifest.json` |
+| Merge release PR | **You** | GitHub Releases created |
+| Push library tags | **You** | `types/*` and `modules/*` semver tags indexed by Go proxy |
+| Push function tags | **You** | Build workflow → runtime image + Crossplane package in GHCR |
 
-> **Why do you push function tags manually if release-please already created them?**
-> release-please pushes tags using `GITHUB_TOKEN`. GitHub intentionally blocks workflow triggers from `GITHUB_TOKEN` events to prevent infinite loops, so those tag pushes are silently ignored by the build workflow. You re-push them (or use `gh workflow run`) to trigger the actual publish.
-
-### The two publish artifacts for functions
-
-When the build workflow runs on a function tag it produces:
-
-1. **Runtime image** — `ghcr.io/<owner>/<name>-runtime:<version>`
-   A distroless Docker image with the compiled Go binary. Never installed directly; it is embedded inside the Crossplane package.
-
-2. **Crossplane package** — `ghcr.io/<owner>/function-<name>:<version>`
-   An `.xpkg` OCI artifact that bundles the runtime image + `package/crossplane.yaml`. This is what you reference in a `Function` resource on the cluster. Also pushed as `:latest`.
-
-The GitHub Release entry (with changelog) comes from release-please. The GHCR packages come from the tag-triggered build workflow. They are separate — merging the release PR alone is not enough to publish packages.
-
-### Component types and what their tags do
-
-| Component | Tag format | What the tag publishes |
-| --- | --- | --- |
-| `functions/*` | `functions/<name>/v<semver>` | GHCR function package + runtime image |
-| `cmd/*` | `cmd/<name>/v<semver>` | Binary archives + checksums attached to the GitHub Release |
-| `modules/*`, `types/*` | `modules/<name>/v<semver>`, `types/<name>/v<semver>` | The semver tag itself — no binary or OCI artifact; Go module consumers resolve directly from the tag |
-
-### Tag ordering rules
-
-The repo is a monorepo where functions depend on shared libraries (`modules/*`, `types/*`). The **Go module proxy caches versions immutably**: once it fetches a tag, it keeps that snapshot forever. This means:
-
-- **Never delete and recreate a version tag.** The proxy will never pick up the new content. Bump the patch version instead.
-- **Tag dependencies before dependents.** Shared libraries must be tagged and proxy-indexed before function Docker release builds can resolve them. The order is:
+**Tag ordering** — the Go proxy caches versions immutably, so always tag in this order:
 
 ```
-types/* → modules/* → functions/* (and cmd/*)
+types/* → modules/* → functions/*
 ```
 
-If you tag a function before its library deps are proxy-indexed, the function's Docker build will compile against stale cached code.
+Never delete and recreate a tag — bump the patch version instead. CI is unaffected because `go.work` is committed and resolves all modules locally.
 
-> CI tests (lint, unit-test) are not affected by this ordering because `go.work` is committed and CI resolves all workspace modules from the local checkout, bypassing the proxy entirely.
+**Steps:**
 
-### Step-by-step release sequence
+1. Merge your PR to `main`; update function `go.mod` to the upcoming library version first if you changed a library API (CI compiles fine via `go.work`)
+2. Merge the release PR opened by release-please
+3. Tag and push libraries, verify proxy:
+   ```sh
+   git pull && git tag types/xtenant/v0.2.0 && git push origin types/xtenant/v0.2.0
+   curl -s "https://proxy.golang.org/github.com/rezakaramad/crossplane-toolkit/types/xtenant/@v/v0.2.0.info"
+   # must return {"Version":"v0.2.0",...} before continuing
+   ```
+4. Tag and push functions:
+   ```sh
+   git tag functions/xtenant-render/v0.1.0 functions/xtenant-validate/v0.1.0
+   git push origin functions/xtenant-render/v0.1.0 functions/xtenant-validate/v0.1.0
+   ```
 
-**1. Develop on a feature branch**
-
-```sh
-git checkout -b feat/my-change
-# ... make changes across types/, modules/, functions/ ...
-git push origin feat/my-change
-```
-
-**2. Update `go.mod` references before merging**
-
-If you bumped an API in a shared library that a function depends on, you need to reference the *upcoming* version in the function's `go.mod` before merging. The sequence is:
-
-```sh
-# a. Decide the new version for the library (e.g. types/xtenant v0.2.0)
-# b. Update the function's go.mod to require that version
-# c. Run go mod tidy in the function directory
-# d. Commit everything — go.mod, go.sum — on the feature branch
-```
-
-The library tag does not need to exist yet at this point. CI will compile fine because `go.work` resolves the library from the local tree.
-
-**3. Open a PR, review, and merge into `main`**
-
-**4. Let release-please open the release PR**
-
-release-please reads conventional commits and bumps the version for each affected component in `.release-please-manifest.json`. It opens (or updates) a single release PR that touches all changed components at once.
-
-> If release-please misses a component, check that your commit scope matches the package path exactly.
-> For example `feat!(types/xtenant):` not `feat!(xtenant):`.
-
-**5. Merge the release PR**
-
-Merging the release PR does two things automatically: it updates `.release-please-manifest.json` on `main` and creates the GitHub Release entries. Tags are **not** created by release-please in this repo — you create them manually in step 6.
-
-**6. Tag and push shared libraries first**
-
-After the release PR is merged, `main` is the right base. Tag libraries in dependency order:
-
-```sh
-git pull
-git tag types/xtenant/v0.2.0
-git tag modules/nextinsight/v0.2.0
-git push origin types/xtenant/v0.2.0 modules/nextinsight/v0.2.0
-```
-
-Wait a few seconds for the Go module proxy to index the new tags:
-
-```sh
-curl -s "https://proxy.golang.org/github.com/rezakaramad/crossplane-toolkit/types/xtenant/@v/v0.2.0.info"
-curl -s "https://proxy.golang.org/github.com/rezakaramad/crossplane-toolkit/modules/nextinsight/@v/v0.2.0.info"
-```
-
-Both should return a JSON object with a `"Version"` field before you proceed.
-
-**7. Tag functions (and CLI tools) last**
-
-```sh
-git tag functions/xtenant-render/v0.1.0
-git tag functions/xtenant-validate/v0.1.0
-git push origin functions/xtenant-render/v0.1.0 functions/xtenant-validate/v0.1.0
-```
-
-Each function tag triggers the build workflow, which builds the Docker runtime image and publishes the Crossplane function package to GHCR.
-
-> **Note — release-please tags do not trigger workflows.**
-> When release-please merges its PR it creates the version tags automatically using `GITHUB_TOKEN`. GitHub intentionally prevents workflows from being triggered by `GITHUB_TOKEN` events to avoid infinite loops, so those tag pushes are silently ignored by the build workflow. You must push the tags yourself (step 7 above) for the publish to happen.
->
-> If you find the tags already exist on the remote and `git push` says "Everything up-to-date", use `gh workflow run` to dispatch the build manually:
->
+> **release-please tags don't trigger the build workflow** — GitHub blocks `GITHUB_TOKEN` from triggering workflows. If tags already exist and `git push` says "Everything up-to-date", dispatch manually:
 > ```sh
-> gh workflow run "Build and publish Crossplane function packages" --ref functions/xtenant-render/v0.1.0
-> gh workflow run "Build and publish Crossplane function packages" --ref functions/xtenant-validate/v0.1.0
+> gh workflow run "Build and publish Crossplane function packages" --ref functions/<name>/v<version>
 > ```
 
-### Letting Copilot execute this flow
+> Commit scopes must match package paths exactly (`feat!(types/xtenant):` not `feat!(xtenant):`) or release-please misses the component.
 
-You can ask Copilot to perform the release instead of running the steps manually. It will read `.release-please-manifest.json` and recent `git log` to determine what changed and which versions to bump, check for an open or already-merged release PR, and run the tagging sequence in the right order including proxy verification.
+**Letting Copilot do this:** say *"The release PR is merged — do the release"* and it will handle tag ordering and proxy verification automatically.
 
-The only input it needs from you is a go-ahead on the release PR:
-
-> *"The release PR is merged — do the release"*
-
-or, if you want it to manage the PR too:
-
-> *"Open the release PR, wait for my approval, then tag everything"*
-
-Everything else — current versions, changed components, tag order, proxy verification — it can determine from the repo state.
-
-### Version source of truth
-
-- `release-please-config.json` — which components participate in automated releases.
-- `.release-please-manifest.json` — the current released version for each component. If you need to reset a component to a new baseline, update this file before creating new tags.
-
-### What ends up where
-
-- GitHub Releases — created by release-please after the release PR is merged.
-- GHCR function packages — created by the tag-triggered build workflow (`functions/<name>/v*`).
-- Go module tags — the semver tag itself; no workflow needed.
-- Function package files (`.xpkg`) are **not** attached to the GitHub Release; the installable artifacts live in GHCR.
-
-When you look at GitHub Packages you will see both `function-...` and `...-runtime` images:
-
-- `function-...` is the Crossplane function package you install from a `Function` resource.
-- `...-runtime` is the backing container image used by that package.
-- In normal usage, you want `function-...`, not `...-runtime`.
-
-### Verification `gh` commands
-
-- List current GitHub Releases:
-
-```sh
-gh release list --limit 20
-```
-
-- Inspect the assets attached to a CLI release:
-
-```sh
-gh release view cmd/gen-xrd/v0.0.1 --json assets \
-	| jq -r '.assets[] | [.name, .size] | @tsv'
-```
-
-- List recent GitHub Actions runs across workflows:
-
-```sh
-gh run list --limit 20 --json databaseId,workflowName,status,conclusion,headBranch,event \
-	| jq -r '.[] | [.databaseId, .workflowName, .status, .conclusion, .headBranch, .event] | @tsv'
-```
-
-- List recent runs for the CLI binary workflow only:
-
-```sh
-gh run list --workflow "Release CLI Binaries" --limit 10
-```
-
-- List recent runs for the function package workflow only:
-
+**Useful commands:**
 ```sh
 gh run list --workflow "Build and publish Crossplane function packages" --limit 10
-```
-
-- Inspect one workflow run in detail:
-
-```sh
-gh run view <run-id> --json databaseId,status,conclusion,headBranch,url,jobs
-```
-
-- Show failed logs for one workflow run:
-
-```sh
 gh run view <run-id> --log-failed
-```
-
-- List GHCR packages published from this repository:
-
-```sh
-gh api '/users/<owner>/packages?package_type=container&per_page=100' \
-	--jq '.[] | select(.repository.full_name == "<owner>/<repo>") | .name'
-```
-
-- Example for this repository:
-
-```sh
+gh release list --limit 20
 gh api '/users/rezakaramad/packages?package_type=container&per_page=100' \
-	--jq '.[] | select(.repository.full_name == "rezakaramad/crossplane-toolkit") | .name'
+  --jq '.[] | select(.repository.full_name == "rezakaramad/crossplane-toolkit") | .name'
 ```
 
-- Inspect published assets and packages together after a release:
-
-```sh
-gh release view cmd/gen-xrd/v0.0.1 --json assets \
-	| jq -r '.assets[] | [.name, .size] | @tsv'
-
-gh api '/users/rezakaramad/packages?package_type=container&per_page=100' \
-	--jq '.[] | select(.repository.full_name == "rezakaramad/crossplane-toolkit") | .name'
-```
-
-Why this repo uses a raw Go build workflow instead of GoReleaser for `cmd/*`:
-
-- The original monorepo-oriented GoReleaser setup depended on the `monorepo` feature, which is only available in GoReleaser Pro.
-- This repo already uses [release-please](https://github.com/googleapis/release-please) for versioning, changelogs, and GitHub Release entries, so GoReleaser's release-note generation was redundant.
-- For `cmd/*`, the actual need is simple: build cross-platform binaries, archive them, generate checksums, and upload them to the existing GitHub Release.
-- A plain `go build` based workflow does that directly, keeps the configuration small, and avoids a paid tool dependency.
+**Version source of truth:** `release-please-config.json` (components) and `.release-please-manifest.json` (current versions).
 
 ## Notes
 
