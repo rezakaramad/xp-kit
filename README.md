@@ -61,6 +61,73 @@ $ task check:xtenant-validate
 $ task check:functions
 ```
 
+## How function publishing works
+
+Each function produces two artifacts: a **runtime image** (a regular Docker image with the Go binary) and a **Crossplane package** (an `.xpkg` file that embeds the runtime image and is what you install on a cluster). Understanding both is necessary to add a new function or debug a publish failure.
+
+### The two artifacts
+
+| Artifact | Registry path | What it is |
+| --- | --- | --- |
+| Runtime image | `ghcr.io/<owner>/<name>-runtime:<version>` | A distroless container image built from the function's `Dockerfile`. Contains only the compiled Go binary. Never installed directly — it is embedded inside the Crossplane package. |
+| Crossplane package | `ghcr.io/<owner>/function-<name>:<version>` | An `.xpkg` OCI artifact built by `crossplane xpkg build`. It bundles the runtime image together with the function metadata from `package/crossplane.yaml`. This is what you reference in a `Function` resource on the cluster. |
+
+### What each file in a function directory does
+
+```
+functions/xtenant-validate/
+├── Dockerfile          # Builds the runtime image (Go binary in distroless)
+├── package/
+│   └── crossplane.yaml # Function metadata — name, capabilities. One file, no schema needed.
+├── go.mod              # The function's own Go module
+└── *.go                # Function logic
+```
+
+**`Dockerfile`** — two-stage build: `golang` image compiles the binary, `distroless/static` runs it. The build workflow passes `GO_VERSION` and target platform as build args.
+
+**`package/crossplane.yaml`** — declares the function to Crossplane. Minimum viable content:
+
+```yaml
+apiVersion: meta.pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-<name>
+spec:
+  capabilities:
+    - composition
+```
+
+The `name` here must match what you reference in `Composition` resources (`functionRef.name`).
+
+### How the build workflow assembles them
+
+1. **Build runtime image** — `docker build` from the function's `Dockerfile`, tagged as `...-runtime:<version>`
+2. **Push runtime image** — only on tag-triggered or dispatched runs
+3. **Build Crossplane package** — `crossplane xpkg build --package-root package/ --embed-runtime-image ...-runtime:<version>` produces `<name>.xpkg`
+4. **Push Crossplane package** — `crossplane xpkg push` uploads the `.xpkg` to GHCR as `function-<name>:<version>` and also as `latest`
+
+The runtime image must be built and available in the local Docker daemon before `xpkg build` runs, because the embed step pulls it from there.
+
+### Adding a new function
+
+1. Create `functions/<name>/` with a `Dockerfile`, `package/crossplane.yaml`, `go.mod`, and your Go code.
+2. Add it to `go.work` under the `use` block.
+3. Add it to `release-please-config.json` so release-please tracks its version.
+4. Add `<name>: 0.0.0` to `.release-please-manifest.json` as the initial baseline.
+5. The build workflow auto-discovers all directories under `functions/` — no workflow changes needed.
+
+### Verifying published packages
+
+```sh
+# List all GHCR packages from this repo
+gh api '/users/rezakaramad/packages?package_type=container&per_page=100' \
+  --jq '.[] | select(.repository.full_name == "rezakaramad/crossplane-toolkit") | .name'
+
+# Inspect versions of a specific package
+gh api '/users/rezakaramad/packages/container/function-xtenant-validate/versions' \
+  --jq '.[] | [.id, .metadata.container.tags[]] | @tsv'
+```
+
 ## Release flow
 
 There are two moving parts:
@@ -156,6 +223,16 @@ git push origin functions/xtenant-render/v0.1.0 functions/xtenant-validate/v0.1.
 ```
 
 Each function tag triggers the build workflow, which builds the Docker runtime image and publishes the Crossplane function package to GHCR.
+
+> **Note — release-please tags do not trigger workflows.**
+> When release-please merges its PR it creates the version tags automatically using `GITHUB_TOKEN`. GitHub intentionally prevents workflows from being triggered by `GITHUB_TOKEN` events to avoid infinite loops, so those tag pushes are silently ignored by the build workflow. You must push the tags yourself (step 7 above) for the publish to happen.
+>
+> If you find the tags already exist on the remote and `git push` says "Everything up-to-date", use `gh workflow run` to dispatch the build manually:
+>
+> ```sh
+> gh workflow run "Build and publish Crossplane function packages" --ref functions/xtenant-render/v0.1.0
+> gh workflow run "Build and publish Crossplane function packages" --ref functions/xtenant-validate/v0.1.0
+> ```
 
 ### Letting Copilot execute this flow
 
