@@ -135,6 +135,30 @@ There are two moving parts:
 - [release-please](https://github.com/googleapis/release-please) watches `main`, bumps changelogs, and creates GitHub Release entries for the configured components.
 - Tags trigger the actual publish workflows. Without a tag, nothing is published.
 
+### What is automatic vs what you do manually
+
+| Step | Who does it | What it produces |
+| --- | --- | --- |
+| Bump changelogs + open release PR | release-please (automatic on merge to `main`) | A PR that updates `CHANGELOG.md` and `.release-please-manifest.json` |
+| Merge the release PR | **You** | Triggers release-please to create GitHub Releases and push version tags |
+| Tag and proxy-index shared libraries | **You** | The semver Git tag that `go get` resolves — no OCI artifact |
+| Push function/cmd tags | **You** | Triggers the build workflow → runtime image + Crossplane package in GHCR |
+
+> **Why do you push function tags manually if release-please already created them?**
+> release-please pushes tags using `GITHUB_TOKEN`. GitHub intentionally blocks workflow triggers from `GITHUB_TOKEN` events to prevent infinite loops, so those tag pushes are silently ignored by the build workflow. You re-push them (or use `gh workflow run`) to trigger the actual publish.
+
+### The two publish artifacts for functions
+
+When the build workflow runs on a function tag it produces:
+
+1. **Runtime image** — `ghcr.io/<owner>/<name>-runtime:<version>`
+   A distroless Docker image with the compiled Go binary. Never installed directly; it is embedded inside the Crossplane package.
+
+2. **Crossplane package** — `ghcr.io/<owner>/function-<name>:<version>`
+   An `.xpkg` OCI artifact that bundles the runtime image + `package/crossplane.yaml`. This is what you reference in a `Function` resource on the cluster. Also pushed as `:latest`.
+
+The GitHub Release entry (with changelog) comes from release-please. The GHCR packages come from the tag-triggered build workflow. They are separate — merging the release PR alone is not enough to publish packages.
+
 ### Component types and what their tags do
 
 | Component | Tag format | What the tag publishes |
