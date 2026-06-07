@@ -126,8 +126,8 @@ func buildPrincipalUser(t TenantSpec, binding inputv1beta1.BindingInput, azure i
 		t.Spec.DisplayName,
 		cases.Title(language.English).String(binding.Name),
 	))
-	_ = user.SetValue("spec.forProvider.passwordSecretRef.key", "password")
-	_ = user.SetValue("spec.forProvider.passwordSecretRef.name", secretName)
+	_ = user.SetValue("spec.initProvider.passwordSecretRef.key", "password")
+	_ = user.SetValue("spec.initProvider.passwordSecretRef.name", secretName)
 	_ = user.SetValue("spec.providerConfigRef.name", "azuread")
 	_ = user.SetValue("spec.providerConfigRef.kind", "ProviderConfig")
 	return user
