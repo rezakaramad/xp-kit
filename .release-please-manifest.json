@@ -3,6 +3,6 @@
   "types/xtenant": "0.1.0",
   "cmd/gen-xrd": "0.0.1",
   "functions/xtenant-validate": "0.1.0",
-  "functions/xtenant-render": "0.1.0",
+  "functions/xtenant-render": "0.1.1",
   "modules/nextinsight": "0.1.0"
 }

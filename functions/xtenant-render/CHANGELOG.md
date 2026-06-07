@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.1.0...functions/xtenant-render/v0.1.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* **functions/xtenant-render:** move passwordSecretRef to initProvider to stop reconcile loop ([6e94f9b](https://github.com/rezakaramad/crossplane-toolkit/commit/6e94f9b805221ce4f9a8caadb4e75f82cc8a5e26))
+
 ## [0.1.0](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.0.1...functions/xtenant-render/v0.1.0) (2026-05-30)
 
 
