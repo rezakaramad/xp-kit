@@ -53,13 +53,13 @@ type client struct {
 	http    *http.Client
 }
 
-// FetchTenantMetadata calls the /groups endpoint and returns ART and Agile Team ownership.
-func (c *client) FetchTenantMetadata(ctx context.Context, appID string) (*TenantMetadata, error) {
-	groups, err := c.fetchGroups(ctx, appID)
+// FetchTenantMetadata calls the /groups/{id} endpoint and returns ART and Agile Team ownership.
+func (c *client) FetchTenantMetadata(ctx context.Context, teamID string) (*TenantMetadata, error) {
+	group, err := c.fetchGroup(ctx, teamID)
 	if err != nil {
-		return nil, fmt.Errorf("fetch groups for application %s: %w", appID, err)
+		return nil, fmt.Errorf("fetch groups for application %s: %w", teamID, err)
 	}
-	return buildOwnershipMetadata(groups), nil
+	return buildOwnershipMetadata(group), nil
 }
 
 // FetchTenantLabels returns Kubernetes labels derived from tenant ownership metadata.
@@ -80,10 +80,10 @@ func (c *client) FetchApplicationMetadata(ctx context.Context, appID string) (*A
 	return buildApplicationMetadata(appID, app), nil
 }
 
-// TeamExists returns nil when the given ID resolves to a known application in Next-Insight.
-// It calls the /groups endpoint — a successful response confirms the ID is valid.
+// TeamExists returns nil when the given ID resolves to a known group in Next-Insight.
+// It calls the /groups/{id} endpoint — a successful response confirms the ID is valid.
 func (c *client) TeamExists(ctx context.Context, teamID string) error {
-	_, err := c.fetchGroups(ctx, teamID)
+	_, err := c.fetchGroup(ctx, teamID)
 	if err != nil {
 		return fmt.Errorf("team %q not found in Next-Insight: %w", teamID, err)
 	}
@@ -127,17 +127,18 @@ type applicationResponse struct {
 	} `json:"data"`
 }
 
-// JSON shape we expect back from the API for this endpoint
-// /API/rest/v3/applications/{id}/groups
-type groupsResponse struct {
-	Data []groupItem `json:"data"`
-}
-
-// JSON shape we expect back from the API for each group item in the groupsResponse
-// Matches the "groups" array items in the response from /API/rest/v3/applications/{id}/groups
-type groupItem struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+// JSON shape returned by GET /API/rest/v3/groups/{id}
+type groupResponse struct {
+	Data struct {
+		ID          int    `json:"id"`
+		Name        string `json:"name"`
+		GroupType   struct {
+			Name string `json:"name"`
+		} `json:"groupType"`
+		ParentGroup struct {
+			Name string `json:"name"`
+		} `json:"parentGroup"`
+	} `json:"data"`
 }
 
 // Gets an application by ID from Next-Insight and coverts the JSON response into a Go struct.
@@ -153,12 +154,11 @@ func (c *client) fetchApplication(ctx context.Context, appID string) (*applicati
 	return &out, nil
 }
 
-// Gets groups associated with an application from Next-Insight and converts the JSON response into a Go struct.
-func (c *client) fetchGroups(ctx context.Context, appID string) (*groupsResponse, error) {
-	// Build the URL for the groups endpoint and make the GET request
-	// E.g. GET https://app.next-insight.com/API/rest/v3/applications/12345/groups
-	url := fmt.Sprintf("%s/API/rest/v3/applications/%s/groups", c.baseURL, appID)
-	var out groupsResponse
+// Gets a group by ID from Next-Insight and converts the JSON response into a Go struct.
+func (c *client) fetchGroup(ctx context.Context, groupID string) (*groupResponse, error) {
+	// E.g. GET https://app.next-insight.com/API/rest/v3/groups/44
+	url := fmt.Sprintf("%s/API/rest/v3/groups/%s", c.baseURL, groupID)
+	var out groupResponse
 	if err := c.get(ctx, url, &out); err != nil {
 		return nil, err
 	}
@@ -197,13 +197,6 @@ func (c *client) get(ctx context.Context, url string, out any) error {
 	return nil
 }
 
-// The group types in Next-Insight that we care about for metadata purposes;
-// Used to filter the groups associated with an application into ARTs and Agile Teams when building AppMetadata.
-const (
-	groupTypeART       = "Agile Release Train"
-	groupTypeAgileTeam = "Agile Team"
-)
-
 // buildApplicationMetadata projects the application response into an ApplicationMetadata.
 func buildApplicationMetadata(appID string, app *applicationResponse) *ApplicationMetadata {
 	return &ApplicationMetadata{
@@ -220,21 +213,11 @@ func buildApplicationMetadata(appID string, app *applicationResponse) *Applicati
 	}
 }
 
-// buildOwnershipMetadata projects the groups response into an OwnershipMetadata.
-// Keeps only the first ART and Agile Team to stay deterministic.
-func buildOwnershipMetadata(groups *groupsResponse) *TenantMetadata {
-	metadata := &TenantMetadata{}
-	for _, group := range groups.Data {
-		switch group.Type {
-		case groupTypeART:
-			if metadata.AgileReleaseTrain == "" {
-				metadata.AgileReleaseTrain = group.Name
-			}
-		case groupTypeAgileTeam:
-			if metadata.AgileTeam == "" {
-				metadata.AgileTeam = group.Name
-			}
-		}
+// buildOwnershipMetadata projects the group response into a TenantMetadata.
+// The group itself is the Agile Team; its parent group is the ART.
+func buildOwnershipMetadata(group *groupResponse) *TenantMetadata {
+	return &TenantMetadata{
+		AgileTeam:         group.Data.Name,
+		AgileReleaseTrain: group.Data.ParentGroup.Name,
 	}
-	return metadata
 }

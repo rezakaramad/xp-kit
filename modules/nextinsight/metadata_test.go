@@ -168,17 +168,13 @@ func TestWorkloadLabels_EmptyMetadataReturnsEmptyMap(t *testing.T) {
 // buildMetadata — first-wins for ART and Agile Team
 // ---------------------------------------------------------------------------
 
-func TestBuildOwnershipMetadata_FirstGroupWins(t *testing.T) {
-	groups := &groupsResponse{
-		Data: []groupItem{
-			{Name: "ART-One", Type: groupTypeART},
-			{Name: "ART-Two", Type: groupTypeART},
-			{Name: "Team-Alpha", Type: groupTypeAgileTeam},
-			{Name: "Team-Beta", Type: groupTypeAgileTeam},
-		},
-	}
+func TestBuildOwnershipMetadata_ReturnsTeamAndParent(t *testing.T) {
+	group := &groupResponse{}
+	group.Data.Name = "Team-Alpha"
+	group.Data.GroupType.Name = "Agile Team"
+	group.Data.ParentGroup.Name = "ART-One"
 
-	meta := buildOwnershipMetadata(groups)
+	meta := buildOwnershipMetadata(group)
 
 	if meta.AgileReleaseTrain != "ART-One" {
 		t.Errorf("AgileReleaseTrain = %q, want %q", meta.AgileReleaseTrain, "ART-One")
@@ -188,18 +184,19 @@ func TestBuildOwnershipMetadata_FirstGroupWins(t *testing.T) {
 	}
 }
 
-func TestBuildOwnershipMetadata_UnknownGroupTypeIgnored(t *testing.T) {
-	groups := &groupsResponse{
-		Data: []groupItem{
-			{Name: "Some Portfolio", Type: "Portfolio"},
-		},
+func TestBuildOwnershipMetadata_NoParentGroup(t *testing.T) {
+	group := &groupResponse{}
+	group.Data.Name = "Team-Alpha"
+	group.Data.GroupType.Name = "Agile Team"
+	// ParentGroup.Name is empty
+
+	meta := buildOwnershipMetadata(group)
+
+	if meta.AgileTeam != "Team-Alpha" {
+		t.Errorf("AgileTeam = %q, want %q", meta.AgileTeam, "Team-Alpha")
 	}
-
-	meta := buildOwnershipMetadata(groups)
-
-	if meta.AgileReleaseTrain != "" || meta.AgileTeam != "" {
-		t.Errorf("expected empty ART and AgileTeam for unknown group type, got ART=%q Team=%q",
-			meta.AgileReleaseTrain, meta.AgileTeam)
+	if meta.AgileReleaseTrain != "" {
+		t.Errorf("expected empty AgileReleaseTrain, got %q", meta.AgileReleaseTrain)
 	}
 }
 

@@ -95,18 +95,15 @@ func TestGet_ErrorOnInvalidJSON(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestFetchTenantMetadata_HappyPath(t *testing.T) {
-	groupsResp := groupsResponse{
-		Data: []groupItem{
-			{Name: "ART-Platform", Type: groupTypeART},
-			{Name: "Team Falcon", Type: groupTypeAgileTeam},
-			// second ART — should be ignored (first-wins)
-			{Name: "ART-Other", Type: groupTypeART},
-		},
-	}
+	groupResp := groupResponse{}
+	groupResp.Data.ID = 44
+	groupResp.Data.Name = "Team Falcon"
+	groupResp.Data.GroupType.Name = "Agile Team"
+	groupResp.Data.ParentGroup.Name = "ART-Platform"
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/API/rest/v3/applications/42/groups", func(w http.ResponseWriter, _ *http.Request) {
-		serveJSON(t, w, groupsResp)
+	mux.HandleFunc("/API/rest/v3/groups/42", func(w http.ResponseWriter, _ *http.Request) {
+		serveJSON(t, w, groupResp)
 	})
 
 	c, _ := newTestClient(t, mux)
@@ -125,7 +122,7 @@ func TestFetchTenantMetadata_HappyPath(t *testing.T) {
 
 func TestFetchTenantMetadata_GroupsEndpointError(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/API/rest/v3/applications/7/groups", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("/API/rest/v3/groups/7", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	})
 
@@ -145,16 +142,14 @@ func TestFetchTenantMetadata_GroupsEndpointError(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestFetchTenantLabels_HappyPath(t *testing.T) {
-	groupsResp := groupsResponse{
-		Data: []groupItem{
-			{Name: "ART-Platform", Type: groupTypeART},
-			{Name: "Team Falcon", Type: groupTypeAgileTeam},
-		},
-	}
+	groupResp := groupResponse{}
+	groupResp.Data.Name = "Team Falcon"
+	groupResp.Data.GroupType.Name = "Agile Team"
+	groupResp.Data.ParentGroup.Name = "ART-Platform"
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/API/rest/v3/applications/42/groups", func(w http.ResponseWriter, _ *http.Request) {
-		serveJSON(t, w, groupsResp)
+	mux.HandleFunc("/API/rest/v3/groups/42", func(w http.ResponseWriter, _ *http.Request) {
+		serveJSON(t, w, groupResp)
 	})
 
 	c, _ := newTestClient(t, mux)
@@ -248,9 +243,13 @@ func TestNew_StripsTrailingSlash(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestTeamIDExists_HappyPath(t *testing.T) {
+	groupResp := groupResponse{}
+	groupResp.Data.ID = 42
+	groupResp.Data.Name = "Team Falcon"
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("/API/rest/v3/applications/42/groups", func(w http.ResponseWriter, _ *http.Request) {
-		serveJSON(t, w, groupsResponse{Data: []groupItem{{Name: "ART-Platform", Type: groupTypeART}}})
+	mux.HandleFunc("/API/rest/v3/groups/42", func(w http.ResponseWriter, _ *http.Request) {
+		serveJSON(t, w, groupResp)
 	})
 
 	c, _ := newTestClient(t, mux)
@@ -262,7 +261,7 @@ func TestTeamIDExists_HappyPath(t *testing.T) {
 
 func TestTeamIDExists_NotFound(t *testing.T) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/API/rest/v3/applications/99/groups", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("/API/rest/v3/groups/99", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
