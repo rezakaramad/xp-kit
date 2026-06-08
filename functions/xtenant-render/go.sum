@@ -155,8 +155,8 @@ github.com/prometheus/common v0.67.5 h1:pIgK94WWlQt1WLwAC5j2ynLaBRDiinoAb86HZHTU
 github.com/prometheus/common v0.67.5/go.mod h1:SjE/0MzDEEAyrdr5Gqc6G+sXI67maCxzaT3A2+HqjUw=
 github.com/prometheus/procfs v0.19.2 h1:zUMhqEW66Ex7OXIiDkll3tl9a1ZdilUOd/F6ZXw4Vws=
 github.com/prometheus/procfs v0.19.2/go.mod h1:M0aotyiemPhBCM0z5w87kL22CxfcH05ZpYlu+b4J7mw=
-github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.1 h1:Iz93yrLTHgPswB7F6wR6ReWHFVD3Dp9U7X6MhASKFgk=
-github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.1/go.mod h1:ahugS/DlIuj/ZEuoCBlBXDzC4nY0+4rbNP5ffD778b4=
+github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.2 h1:TFQCifBDU4asfYk8XB+uaY7C3O6HSLTWoJ1zXNWj/A0=
+github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.2/go.mod h1:ahugS/DlIuj/ZEuoCBlBXDzC4nY0+4rbNP5ffD778b4=
 github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.1.1 h1:+Llq7XrkQMY28h4TfGGmvusfnJOT+uveR+wLiMlV6vA=
 github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.1.1/go.mod h1:sxnes+eDuvH4+EuY1qjaa+u9AL/zx0G56vpcnighVus=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
