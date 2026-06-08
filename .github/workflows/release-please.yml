@@ -35,6 +35,7 @@ jobs:
     if: ${{ needs.release-please.outputs.releases_created == 'true' }}
     permissions:
       actions: write
+      contents: read
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -51,7 +52,7 @@ jobs:
             fi
 
             # Find the most recently published release tag for this function path.
-            tag=$(gh release list --limit 20 --json tagName \
+            tag=$(gh release list --repo "${{ github.repository }}" --limit 20 --json tagName \
               --jq ".[] | select(.tagName | startswith(\"${path}/\")) | .tagName" \
               | head -1)
 
@@ -61,5 +62,5 @@ jobs:
             fi
 
             echo "Dispatching build workflow for ${tag}"
-            gh workflow run "Build and publish Crossplane function packages" --ref "$tag"
+            gh workflow run "Build and publish Crossplane function packages" --repo "${{ github.repository }}" --ref "$tag"
           done
