@@ -1,6 +1,14 @@
 version: '3'
 
 tasks:
+  install:hooks:
+    desc: Install git hooks (run once after cloning).
+    cmds:
+      - cp hack/pre-push .git/hooks/pre-push
+      - chmod +x .git/hooks/pre-push
+      - echo "Git hooks installed."
+
+
   fix:function:
     desc: Auto-fix tidy, lint, and formatting issues for one function module.
     requires:

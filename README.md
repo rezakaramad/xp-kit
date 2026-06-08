@@ -34,6 +34,7 @@ Each top-level directory has a pretty specific job.
 
 ## Local checks
 
+- Run `task install:hooks` once after cloning — it installs a pre-push git hook that auto-fixes lint and formatting before every push.
 - VS Code is set up to use [golangci-lint](https://github.com/golangci/golangci-lint) on save.
 - We use a [Taskfile](https://taskfile.dev) to keep the common checks in one place.
 - Run `task --list` to see what is available, then pick the check you need for one function or for all of them.
@@ -63,14 +64,14 @@ $ task check:functions
 
 ## Functions: build and publish
 
-Each function tag produces two GHCR artifacts:
+The CI automatically discovers every directory under `functions/` and runs validation (lint + tests + build) on branches and pull requests. Packaging is verified on PRs; publishing to GHCR happens automatically as part of the release flow after the release PR is merged.
 
-- **`ghcr.io/<owner>/<name>-runtime:<version>`** — distroless image with the Go binary (embedded, never installed directly)
-- **`ghcr.io/<owner>/function-<name>:<version>`** — the `.xpkg` Crossplane package that bundles the runtime image + `package/crossplane.yaml`; this is what you install on the cluster via a `Function` resource
+Artifacts produced by the release build:
 
-Think of `.xpkg` like a Docker image for Crossplane: it packages your binary with the metadata Crossplane needs to run it as a composition function.
+- `ghcr.io/<owner>/<name>-runtime:<version>` — distroless runtime image containing the compiled Go binary
+- `ghcr.io/<owner>/function-<name>:<version>` — the `.xpkg` Crossplane package (runtime image + `package/crossplane.yaml`)
 
-**Required files per function:**
+Required files per function:
 
 ```
 functions/<name>/
@@ -80,7 +81,17 @@ functions/<name>/
 └── go.mod
 ```
 
-**Adding a new function:** create the directory above, add it to `go.work` and to `release-please-config.json` + `.release-please-manifest.json` at `0.0.0`. The build workflow auto-discovers all `functions/` subdirectories.
+How to add a new function (minimal):
+
+1. Create `functions/<name>/` with the `Dockerfile`, `package/crossplane.yaml`, and `go.mod`.
+2. Add the module to `go.work` (so local CI resolves modules consistently).
+3. Add a `packages` entry for `functions/<name>` in `release-please-config.json` (include `initial-version` if desired).
+4. Open a PR and merge — release-please will create the release PR and tags, and CI will publish the packages automatically when the release PR is merged.
+
+Notes:
+
+- You do not need to create or push tags manually — release-please manages tagging and releases.
+- Keep commit scopes aligned with package paths (e.g. `feat!(types/xtenant):`) so release-please picks up the right component.
 
 ## Release flow
 
