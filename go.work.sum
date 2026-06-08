@@ -423,8 +423,7 @@ github.com/prometheus/procfs v0.16.1/go.mod h1:teAbpZRB1iIAJYREa1LsoWUXykVXA1KlT
 github.com/protocolbuffers/protoscope v0.0.0-20221109213918-8e7a6aafa2c9/go.mod h1:SKZx6stCn03JN3BOWTwvVIO2ajMkb/zQdTceXYhKw/4=
 github.com/quic-go/qpack v0.6.0/go.mod h1:lUpLKChi8njB4ty2bFLX2x4gzDqXwUpaO1DP9qMDZII=
 github.com/quic-go/quic-go v0.59.0/go.mod h1:upnsH4Ju1YkqpLXC305eW3yDZ4NfnNbmQRCMWS58IKU=
-github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.1/go.mod h1:ahugS/DlIuj/ZEuoCBlBXDzC4nY0+4rbNP5ffD778b4=
-github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.1.1/go.mod h1:sxnes+eDuvH4+EuY1qjaa+u9AL/zx0G56vpcnighVus=
+github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.2/go.mod h1:ahugS/DlIuj/ZEuoCBlBXDzC4nY0+4rbNP5ffD778b4=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab/go.mod h1:/PfPXh0EntGc3QAAyUaviy4S9tzy4Zp0e2ilq4voC6E=
 github.com/robfig/cron/v3 v3.0.1/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzGIFLtro=

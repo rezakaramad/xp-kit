@@ -7,7 +7,7 @@ require (
 	github.com/crossplane/crossplane-runtime/v2 v2.2.0
 	github.com/crossplane/function-sdk-go v0.6.0
 	github.com/google/go-cmp v0.7.0
-	github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.1
+	github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.2
 	github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.1.1
 	golang.org/x/net v0.49.0
 	google.golang.org/api v0.231.0
