@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.1.1...functions/xtenant-render/v0.1.2) (2026-06-08)
+
+
+### Bug Fixes
+
+* **functions:** add go.sum entries for modules/nextinsight v0.1.2 ([2be8001](https://github.com/rezakaramad/crossplane-toolkit/commit/2be8001fc810c75d6c38aad79f33fdca98ad6838))
+* **functions:** bump modules/nextinsight to v0.1.2 (fixed /groups/{id} endpoint) ([e56c496](https://github.com/rezakaramad/crossplane-toolkit/commit/e56c496c6455f52d324e6c4d04afb288012aaa71))
+
 ## [0.1.1](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.1.0...functions/xtenant-render/v0.1.1) (2026-06-07)
 
 
