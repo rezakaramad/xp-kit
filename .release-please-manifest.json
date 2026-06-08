@@ -1,10 +1,10 @@
 {
   "modules/runner": "0.0.1",
-  "modules/gcpdns": "0.0.1",
-  "modules/pdns": "0.0.1",
+  "modules/gcpdns": "0.1.0",
+  "modules/pdns": "0.1.0",
   "types/xtenant": "0.1.0",
   "cmd/gen-xrd": "0.0.1",
-  "functions/xtenant-validate": "0.1.1",
+  "functions/xtenant-validate": "0.2.0",
   "functions/xtenant-render": "0.1.2",
-  "modules/nextinsight": "0.1.2"
+  "modules/nextinsight": "0.2.0"
 }
