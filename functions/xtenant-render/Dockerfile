@@ -24,7 +24,12 @@ ENV CGO_ENABLED=0
 RUN --mount=target=. \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=secret,id=netrc,target=/root/.netrc \
-    go mod download
+    TOKEN=$(awk '/password/{print $2}' /root/.netrc) \
+    && GIT_CONFIG_COUNT=1 \
+       GIT_CONFIG_KEY_0="url.https://x-access-token:${TOKEN}@github.com/.insteadOf" \
+       GIT_CONFIG_VALUE_0="https://github.com/" \
+       GOPRIVATE=github.com/rezakaramad/* \
+       go mod download
 
 # The TARGETOS and TARGETARCH args are set by docker. We set GOOS and GOARCH to
 # these values to ask Go to compile a binary for these architectures. If
