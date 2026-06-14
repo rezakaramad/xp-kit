@@ -51,6 +51,8 @@ jobs:
 
       - name: Lint
         uses: golangci/golangci-lint-action@v7
+        env:
+          GOWORK: "off"
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: ${{ steps.vars.outputs.path }}
