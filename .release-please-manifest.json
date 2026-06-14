@@ -4,5 +4,5 @@
   "modules/pdns": "0.1.0",
   "modules/nextinsight": "0.1.0",
   "cmd/gen-xrd": "0.1.0",
-  "types/xtenant": "0.0.1"
+  "types/xtenant": "0.1.0"
 }
