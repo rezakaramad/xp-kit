@@ -48,12 +48,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Configure git credentials so 'go mod download' inside the Docker build
-      # can fetch private modules from github.com without touching the Dockerfile.
-      - name: Configure Git auth for private Go modules
-        run: gh auth setup-git
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Write a netrc file so 'go mod download' inside the Docker build can
+      # fetch private modules. Passed as a build secret — never baked into the image.
+      - name: Create netrc for private Go modules
+        run: |
+          printf 'machine github.com\nlogin x-access-token\npassword %s\n' \
+            "${{ secrets.GITHUB_TOKEN }}" > /tmp/netrc
+          chmod 600 /tmp/netrc
 
       # Build the multi-arch runtime image and push it to ghcr.io.
       # The digest is captured so the xpkg step pins to the exact image.
@@ -69,6 +70,8 @@ jobs:
             ${{ steps.meta.outputs.runtime_image }}:latest
           build-args: |
             GO_VERSION=1.26
+          secrets: |
+            netrc=/tmp/netrc
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}

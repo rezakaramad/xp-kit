@@ -8,7 +8,10 @@ WORKDIR /fn
 
 ENV CGO_ENABLED=0
 
-RUN --mount=target=. --mount=type=cache,target=/go/pkg/mod go mod download
+RUN --mount=target=. \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=secret,id=netrc,target=/root/.netrc \
+    go mod download
 
 ARG TARGETOS
 ARG TARGETARCH
