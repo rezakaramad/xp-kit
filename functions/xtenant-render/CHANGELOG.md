@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.2](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.0.1...functions/xtenant-render/v0.0.2) (2026-06-14)
+
+
+### Bug Fixes
+
+* update internal module versions to v0.0.1 ([a496173](https://github.com/rezakaramad/crossplane-toolkit/commit/a496173b74d880f2f8a65d751f464fb7f08931ac))
+
 ## 0.0.1 (2026-06-14)
 
 

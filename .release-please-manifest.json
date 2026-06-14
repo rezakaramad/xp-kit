@@ -6,6 +6,6 @@
   "types/xdeployment": "0.0.1",
   "cmd/gen-xrd": "0.0.1",
   "modules/nextinsight": "0.0.1",
-  "functions/xtenant-render": "0.0.1",
-  "functions/xtenant-validate": "0.0.1"
+  "functions/xtenant-render": "0.0.2",
+  "functions/xtenant-validate": "0.0.2"
 }
