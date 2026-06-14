@@ -48,6 +48,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Configure git credentials so 'go mod download' inside the Docker build
+      # can fetch private modules from github.com without touching the Dockerfile.
+      - name: Configure Git auth for private Go modules
+        run: gh auth setup-git
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Build the multi-arch runtime image and push it to ghcr.io.
       # The digest is captured so the xpkg step pins to the exact image.
       - name: Build and push runtime image
