@@ -12,9 +12,6 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -22,45 +19,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-
-  # Dispatch the build workflow for each function that was just released.
-  #
-  # Why this job exists: release-please pushes tags using GITHUB_TOKEN, and GitHub
-  # blocks tag-push events triggered by GITHUB_TOKEN from firing other workflows.
-  # workflow_dispatch is explicitly exempt from that restriction, so we use it here
-  # to kick off the function build after releases are created.
-  trigger-function-builds:
-    needs: release-please
-    runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
-    permissions:
-      actions: write
-      contents: read
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Dispatch build workflow for each released function
-        run: |
-          set -euo pipefail
-
-          paths='${{ needs.release-please.outputs.paths_released }}'
-
-          echo "$paths" | jq -r '.[]' | while read -r path; do
-            if [[ "$path" != functions/* ]]; then
-              echo "Skipping non-function release: $path"
-              continue
-            fi
-
-            # Find the most recently published release tag for this function path.
-            tag=$(gh release list --repo "${{ github.repository }}" --limit 20 --json tagName \
-              --jq ".[] | select(.tagName | startswith(\"${path}/\")) | .tagName" \
-              | head -1)
-
-            if [[ -z "$tag" ]]; then
-              echo "No release tag found for ${path}; skipping."
-              continue
-            fi
-
-            echo "Dispatching build workflow for ${tag}"
-            gh workflow run "Build and publish Crossplane function packages" --repo "${{ github.repository }}" --ref main --field tag="${tag}"
-          done
