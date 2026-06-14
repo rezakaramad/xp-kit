@@ -8,9 +8,9 @@ require (
 	github.com/crossplane/function-sdk-go v0.6.2
 	github.com/google/go-cmp v0.7.0
 	github.com/rezakaramad/crossplane-toolkit/modules/gcpdns v0.0.0
-	github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.2
+	github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.0.1
 	github.com/rezakaramad/crossplane-toolkit/modules/pdns v0.0.0
-	github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.1.1
+	github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.0.1
 	google.golang.org/api v0.231.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 	k8s.io/api v0.35.2
