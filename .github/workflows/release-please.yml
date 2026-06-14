@@ -62,5 +62,5 @@ jobs:
             fi
 
             echo "Dispatching build workflow for ${tag}"
-            gh workflow run "Build and publish Crossplane function packages" --repo "${{ github.repository }}" --ref "$tag"
+            gh workflow run "Build and publish Crossplane function packages" --repo "${{ github.repository }}" --ref main --field tag="${tag}"
           done
