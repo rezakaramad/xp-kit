@@ -2,7 +2,6 @@ go 1.26.2
 
 use (
 	./cmd/gen-xrd
-	./functions/xdeployment
 	./functions/xtenant-render
 	./functions/xtenant-validate
 	./modules/gcpdns
