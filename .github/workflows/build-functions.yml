@@ -49,10 +49,6 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Download modules
-        working-directory: ${{ steps.vars.outputs.path }}
-        run: go mod download
-
       - name: Lint
         uses: golangci/golangci-lint-action@v7
         with:
