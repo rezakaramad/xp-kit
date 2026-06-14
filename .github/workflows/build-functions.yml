@@ -55,7 +55,7 @@ jobs:
           version: ${{ env.GOLANGCI_VERSION }}
           working-directory: ${{ steps.vars.outputs.path }}
           args: --config ../../.golangci.yml
-          skip-cache: true
+          cache-dependency-path: ${{ steps.vars.outputs.path }}/go.sum
 
       - name: Test
         working-directory: ${{ steps.vars.outputs.path }}
