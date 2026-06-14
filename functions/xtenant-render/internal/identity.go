@@ -3,16 +3,17 @@ package render
 import (
 	"fmt"
 
-	commonv1 "github.com/crossplane/crossplane-runtime/v2/apis/common/v1"
-	commonv2 "github.com/crossplane/crossplane-runtime/v2/apis/common/v2"
-	"github.com/crossplane/function-sdk-go/resource"
-	"github.com/crossplane/function-sdk-go/resource/composed"
 	inputv1beta1 "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/input/v1beta1"
 	groupsv1beta1 "github.com/upbound/provider-azuread/v2/apis/namespaced/groups/v1beta1"
 	usersv1beta1 "github.com/upbound/provider-azuread/v2/apis/namespaced/users/v1beta1"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	commonv1 "github.com/crossplane/crossplane-runtime/v2/apis/common/v1"
+	commonv2 "github.com/crossplane/crossplane-runtime/v2/apis/common/v2"
+	"github.com/crossplane/function-sdk-go/resource"
+	"github.com/crossplane/function-sdk-go/resource/composed"
 )
 
 const (

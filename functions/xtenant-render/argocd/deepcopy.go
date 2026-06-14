@@ -2,6 +2,7 @@ package argocd
 
 import "k8s.io/apimachinery/pkg/runtime"
 
+// DeepCopyInto copies all fields of in into out.
 func (in *Application) DeepCopyInto(out *Application) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
@@ -9,6 +10,7 @@ func (in *Application) DeepCopyInto(out *Application) {
 	in.Spec.DeepCopyInto(&out.Spec)
 }
 
+// DeepCopy returns a deep copy of the Application.
 func (in *Application) DeepCopy() *Application {
 	if in == nil {
 		return nil
@@ -18,6 +20,7 @@ func (in *Application) DeepCopy() *Application {
 	return out
 }
 
+// DeepCopyObject returns a deep copy of the Application as a runtime.Object.
 func (in *Application) DeepCopyObject() runtime.Object {
 	if c := in.DeepCopy(); c != nil {
 		return c
@@ -25,6 +28,7 @@ func (in *Application) DeepCopyObject() runtime.Object {
 	return nil
 }
 
+// DeepCopyInto copies all fields of in into out.
 func (in *ApplicationList) DeepCopyInto(out *ApplicationList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
@@ -37,6 +41,7 @@ func (in *ApplicationList) DeepCopyInto(out *ApplicationList) {
 	}
 }
 
+// DeepCopy returns a deep copy of the ApplicationList.
 func (in *ApplicationList) DeepCopy() *ApplicationList {
 	if in == nil {
 		return nil
@@ -46,6 +51,7 @@ func (in *ApplicationList) DeepCopy() *ApplicationList {
 	return out
 }
 
+// DeepCopyObject returns a deep copy of the ApplicationList as a runtime.Object.
 func (in *ApplicationList) DeepCopyObject() runtime.Object {
 	if c := in.DeepCopy(); c != nil {
 		return c
@@ -53,6 +59,7 @@ func (in *ApplicationList) DeepCopyObject() runtime.Object {
 	return nil
 }
 
+// DeepCopyInto copies all fields of in into out.
 func (in *ApplicationSpec) DeepCopyInto(out *ApplicationSpec) {
 	*out = *in
 	out.Source = in.Source

@@ -1,13 +1,13 @@
+// Package render provides helpers for building composed Crossplane resources.
 package render
 
 import (
 	"fmt"
 	"sort"
 
-	"sigs.k8s.io/yaml"
-
 	argocdtypes "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/argocd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 
 	"github.com/crossplane/function-sdk-go/resource/composed"
 )

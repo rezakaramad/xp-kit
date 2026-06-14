@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"strings"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	repov1alpha1 "github.com/crossplane-contrib/provider-upjet-github/apis/namespaced/repo/v1alpha1"
 	commonv1 "github.com/crossplane/crossplane-runtime/v2/apis/common/v1"
 	commonv2 "github.com/crossplane/crossplane-runtime/v2/apis/common/v2"
 	"github.com/crossplane/function-sdk-go/resource/composed"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // RepositoryFileConfig provides all external settings required to build a RepositoryFile resource.

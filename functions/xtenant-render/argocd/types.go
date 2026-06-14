@@ -14,17 +14,22 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+// ApplicationKind is the Kubernetes Kind name for ArgoCD Application resources.
 const ApplicationKind = "Application"
 
+//nolint:gochecknoglobals
 var (
+	// GroupVersion is the group/version for ArgoCD application resources.
 	GroupVersion = schema.GroupVersion{Group: "argoproj.io", Version: "v1alpha1"}
 
+	// SchemeBuilder registers the ArgoCD types with a Kubernetes runtime scheme.
 	SchemeBuilder = runtime.NewSchemeBuilder(func(s *runtime.Scheme) error {
 		s.AddKnownTypes(GroupVersion, &Application{}, &ApplicationList{})
 		metav1.AddToGroupVersion(s, GroupVersion)
 		return nil
 	})
 
+	// AddToScheme adds the ArgoCD types to the given scheme.
 	AddToScheme = SchemeBuilder.AddToScheme
 )
 
