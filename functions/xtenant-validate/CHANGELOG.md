@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.3](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-validate/v0.0.2...functions/xtenant-validate/v0.0.3) (2026-06-14)
+
+
+### Bug Fixes
+
+* **ci:** escape Dockerfile shell variables with $$ to prevent build-arg expansion ([7a81ea0](https://github.com/rezakaramad/crossplane-toolkit/commit/7a81ea04ff5af5fa515a36554892364ba22a8e1e))
+* **ci:** pass netrc build secret for private Go module auth ([2dcf917](https://github.com/rezakaramad/crossplane-toolkit/commit/2dcf9178c69cf2eb75752aaf39733237426e3f18))
+* **ci:** remove local replace directives and add git auth for private modules ([cee094b](https://github.com/rezakaramad/crossplane-toolkit/commit/cee094b03abe0ff1141e6ac574719ef63f30b3a7))
+* **ci:** use git config --global insteadOf for private module auth ([c588969](https://github.com/rezakaramad/crossplane-toolkit/commit/c5889690dfc8f0f6105d2bbfa0f5dd9fe6a874fb))
+* **ci:** use GIT_CONFIG env vars to authenticate private Go modules in Docker build ([3a5074d](https://github.com/rezakaramad/crossplane-toolkit/commit/3a5074d1b2616631f02a969cc81a4d261d8ffb0f))
+
 ## [0.0.2](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-validate/v0.0.1...functions/xtenant-validate/v0.0.2) (2026-06-14)
 
 
