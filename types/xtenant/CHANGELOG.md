@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/rezakaramad/crossplane-toolkit/compare/types/xtenant/v0.1.1...types/xtenant/v0.2.0) (2026-06-14)
+
+
+### Features
+
+* add xdeployment function and types, migrate xtenant functions to typed providers ([1a6ebb2](https://github.com/rezakaramad/crossplane-toolkit/commit/1a6ebb2a5e0d515b0070c67d269cf47372be1b90))
+
 ## [0.1.0](https://github.com/rezakaramad/crossplane-toolkit/compare/types/xtenant/v0.0.1...types/xtenant/v0.1.0) (2026-05-13)
 
 

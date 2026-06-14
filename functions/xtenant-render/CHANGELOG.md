@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.1.2...functions/xtenant-render/v0.2.0) (2026-06-14)
+
+
+### Features
+
+* add xdeployment function and types, migrate xtenant functions to typed providers ([1a6ebb2](https://github.com/rezakaramad/crossplane-toolkit/commit/1a6ebb2a5e0d515b0070c67d269cf47372be1b90))
+
+
+### Bug Fixes
+
+* **xtenant-render:** add lint comments and package docs for argocd stub and internal packages ([00d9ce5](https://github.com/rezakaramad/crossplane-toolkit/commit/00d9ce524cf261149bec2bbfae9764158bb90610))
+* **xtenant-render:** add nolint explanation for gochecknoglobals ([4c104e7](https://github.com/rezakaramad/crossplane-toolkit/commit/4c104e7aad77256cae21b206a0ca98793190393a))
+* **xtenant-render:** upgrade genproto to resolve ambiguous import after provider split ([8dacfa3](https://github.com/rezakaramad/crossplane-toolkit/commit/8dacfa39b3af0418291114d8469d91102fd1ce88))
+
 ## [0.1.2](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.1.1...functions/xtenant-render/v0.1.2) (2026-06-08)
 
 

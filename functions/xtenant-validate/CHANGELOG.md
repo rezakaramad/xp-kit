@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-validate/v0.2.0...functions/xtenant-validate/v0.3.0) (2026-06-14)
+
+
+### Features
+
+* add xdeployment function and types, migrate xtenant functions to typed providers ([1a6ebb2](https://github.com/rezakaramad/crossplane-toolkit/commit/1a6ebb2a5e0d515b0070c67d269cf47372be1b90))
+
+
+### Bug Fixes
+
+* **xtenant-validate:** add package comment to internal/approve.go ([d2e8390](https://github.com/rezakaramad/crossplane-toolkit/commit/d2e8390f4dd7ca2d366136d29f2c8227155c834a))
+
 ## [0.2.0](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-validate/v0.1.1...functions/xtenant-validate/v0.2.0) (2026-06-08)
 
 
