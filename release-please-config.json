@@ -46,6 +46,20 @@
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "initial-version": "0.0.1"
+    },
+    "functions/xtenant-render": {
+      "component": "functions/xtenant-render",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
+    },
+    "functions/xtenant-validate": {
+      "component": "functions/xtenant-validate",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
     }
   }
 }
