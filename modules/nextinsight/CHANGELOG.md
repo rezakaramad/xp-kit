@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.0 (2026-06-15)
+
+
+### Features
+
+* initial release of crossplane-toolkit ([0fecf7c](https://github.com/rezakaramad/crossplane-toolkit/commit/0fecf7c2effce9ecb96c8e586da6a3a0f5673779))
+
 ## [0.1.0](https://github.com/rezakaramad/crossplane-toolkit/compare/modules/nextinsight/v0.0.1...modules/nextinsight/v0.1.0) (2026-06-14)
 
 
