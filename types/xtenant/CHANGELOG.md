@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/rezakaramad/crossplane-toolkit/compare/types/xtenant/v0.1.0...types/xtenant/v0.2.0) (2026-06-15)
+
+
+### Features
+
+* add types/xtenant module ([1e10768](https://github.com/rezakaramad/crossplane-toolkit/commit/1e10768e97ee0802e5728c87135ae63bff8d193e))
+
 ## 0.0.1 (2026-06-15)
 
 

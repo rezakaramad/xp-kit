@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/rezakaramad/crossplane-toolkit/compare/modules/pdns/v0.1.0...modules/pdns/v0.2.0) (2026-06-15)
+
+
+### Features
+
+* initial release of crossplane-toolkit ([d3f20b3](https://github.com/rezakaramad/crossplane-toolkit/commit/d3f20b3914a75df5f1200203bd697b532ea15235))
+
 ## 0.0.1 (2026-06-15)
 
 

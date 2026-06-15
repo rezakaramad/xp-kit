@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/rezakaramad/crossplane-toolkit/compare/functions/xtenant-render/v0.1.0...functions/xtenant-render/v0.2.0) (2026-06-15)
+
+
+### Features
+
+* add xtenant-render and xtenant-validate functions ([c2fb658](https://github.com/rezakaramad/crossplane-toolkit/commit/c2fb658be8cbe098fb0f040f9705ce1ebb327e31))
+
+
+### Bug Fixes
+
+* regenerate go.sum with current proxy checksums ([2d97bab](https://github.com/rezakaramad/crossplane-toolkit/commit/2d97bab9cd9fb829c61b43cf4a3086b9950a3e73))
+
 ## 0.0.1 (2026-06-15)
 
 
