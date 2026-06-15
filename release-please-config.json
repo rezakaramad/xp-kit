@@ -39,6 +39,13 @@
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "initial-version": "0.0.1"
+    },
+    "types/xtenant": {
+      "component": "types/xtenant",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
     }
   }
 }
