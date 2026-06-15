@@ -15,7 +15,7 @@ type Result struct {
 // For example: BuildFQDN("pay", "dev", "rezakara.demo") → "pay.dev.rezakara.demo."
 func BuildFQDN(name, prefix, base string) string {
 	base = strings.TrimSuffix(base, ".")
-	return fmt.Sprintf("*.%s.%s.%s.", name, prefix, base)
+	return fmt.Sprintf("%s.%s.%s.", name, prefix, base)
 }
 
 // EnsureTrailingDot appends a trailing dot to s if it does not already have one.
