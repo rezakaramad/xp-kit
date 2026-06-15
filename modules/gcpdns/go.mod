@@ -1,6 +1,6 @@
 module github.com/rezakaramad/crossplane-toolkit/modules/gcpdns
 
-go 1.26.0
+go 1.26.4
 
 require google.golang.org/api v0.231.0
 
