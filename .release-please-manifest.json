@@ -2,5 +2,5 @@
   "modules/gcpdns": "0.0.1",
   "modules/generator": "0.0.1",
   "modules/runner": "0.0.1",
-  "modules/pdns": "0.0.0"
+  "modules/pdns": "0.0.1"
 }

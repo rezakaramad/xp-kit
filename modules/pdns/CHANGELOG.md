@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.1 (2026-06-16)
+
+
+### Features
+
+* add modules/pdns ([#45](https://github.com/rezakaramad/crossplane-toolkit/issues/45)) ([f78c481](https://github.com/rezakaramad/crossplane-toolkit/commit/f78c481b10ddcf22baf570e289ee3ed4645bb85e))
+
 ## 0.0.1 (2026-06-15)
 
 
