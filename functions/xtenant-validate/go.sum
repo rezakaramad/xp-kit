@@ -168,6 +168,14 @@ github.com/prometheus/common v0.67.5 h1:pIgK94WWlQt1WLwAC5j2ynLaBRDiinoAb86HZHTU
 github.com/prometheus/common v0.67.5/go.mod h1:SjE/0MzDEEAyrdr5Gqc6G+sXI67maCxzaT3A2+HqjUw=
 github.com/prometheus/procfs v0.19.2 h1:zUMhqEW66Ex7OXIiDkll3tl9a1ZdilUOd/F6ZXw4Vws=
 github.com/prometheus/procfs v0.19.2/go.mod h1:M0aotyiemPhBCM0z5w87kL22CxfcH05ZpYlu+b4J7mw=
+github.com/rezakaramad/xp-kit/modules/gcpdns v0.1.1 h1:Ydyt3yN8rpmWQKG4R1Ttd7aeIgkkm9QYIL+q79fIwHM=
+github.com/rezakaramad/xp-kit/modules/gcpdns v0.1.1/go.mod h1:GC6E6UaDfUZk/MK3sIVnnK/lCdyVlNqBU2ffenqPf34=
+github.com/rezakaramad/xp-kit/modules/nextinsight v0.1.1 h1:kr96+VLsOxLQJT47rv189LSEIw2k/OWJsmzUR8gR0LE=
+github.com/rezakaramad/xp-kit/modules/nextinsight v0.1.1/go.mod h1:TwQs8Tmf2CDKGUshLhbhafYxMyG6y7JZ8f+xF7rEZgE=
+github.com/rezakaramad/xp-kit/modules/pdns v0.1.1 h1:+9qK5ay4jD0aUgqcXLUKFyTJqtzE/TH7Y2s97kYZ57c=
+github.com/rezakaramad/xp-kit/modules/pdns v0.1.1/go.mod h1:c8HkijlThDsle7cFksCFQv6Opb8p/6ZEq0TB4VFDm3Q=
+github.com/rezakaramad/xp-kit/types/xtenant v0.1.1 h1:t7XyoljVvk9D/vLf85SagRPjDDqezOB8nLqMHzhYbzg=
+github.com/rezakaramad/xp-kit/types/xtenant v0.1.1/go.mod h1:16ju3bzU6DAUBdtjh2ryR6tZE+zUu67RcMXiGkFWg+k=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
