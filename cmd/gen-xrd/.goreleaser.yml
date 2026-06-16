@@ -1,0 +1,19 @@
+version: 2
+
+builds:
+  - id: gen-xrd
+    main: .
+    binary: gen-xrd
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+release:
+  mode: keep-existing
+
+changelog:
+  disable: true
