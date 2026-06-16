@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"reflect"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+
 	"github.com/crossplane/function-sdk-go/errors"
 	"github.com/crossplane/function-sdk-go/logging"
 	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
@@ -12,9 +16,6 @@ import (
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/resource/composed"
 	"github.com/crossplane/function-sdk-go/response"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // init runs once automatically when this package is loaded by Go.
@@ -25,7 +26,7 @@ import (
 //
 // Without this registration, converting a core/v1 object can fail at runtime
 // with an error saying its kind is not registered in the scheme.
-func init() {
+func init() { //nolint:gochecknoinits // registers corev1 types into the composed scheme at startup; no other injection point available
 	if err := corev1.AddToScheme(composed.Scheme); err != nil {
 		panic(fmt.Sprintf("register corev1 types in composed scheme: %v", err))
 	}
@@ -39,8 +40,11 @@ func init() {
 // Return a non-nil error to halt reconciliation with a fatal condition.
 type ContextEnricher[XR any, D any] func(ctx context.Context, c Context[XR, D]) (Context[XR, D], error)
 
-// RunnerOption is a functional option for [New].
-type RunnerOption[XR any, D any] func(*Runner[XR, D])
+// Option is a functional option for [New].
+type Option[XR any, D any] func(*Runner[XR, D])
+
+// RunnerOption is an alias for Option for backwards compatibility.
+type RunnerOption[XR any, D any] = Option[XR, D] //nolint:revive // intentional alias for backwards compatibility
 
 // WithContextEnricher registers an enricher that runs once per reconcile
 // after the XR is decoded. Use it to attach externally-resolved metadata
@@ -95,7 +99,8 @@ func New[XR any, D any](req *fnv1.RunFunctionRequest, log logging.Logger, opts .
 //	return r.Run(ctx)
 func Register[XR any, Defaults any, Observed runtime.Object, Desired runtime.Object](
 	runner *Runner[XR, Defaults],
-	builder Builder[XR, Defaults, Observed, Desired]) {
+	builder Builder[XR, Defaults, Observed, Desired],
+) {
 	// Wrap the typed builder in the adapter layer used by Runner.
 	runner.builders = append(runner.builders, &builderAdapter[XR, Defaults, Observed, Desired]{builder: builder})
 }
@@ -267,7 +272,7 @@ func (runner *Runner[XR, D]) Run(ctx context.Context) (*fnv1.RunFunctionResponse
 //  3. Use InternalError as the reason
 //  4. Attach msg as the message
 //  5. Publish that condition onto the composite resource and its claim
-func (r *Runner[XR, D]) fatal(rsp *fnv1.RunFunctionResponse, msg string, err error) {
+func (runner *Runner[XR, D]) fatal(rsp *fnv1.RunFunctionResponse, msg string, err error) {
 	// Add a FunctionSuccess=false condition with reason InternalError to the response.
 	response.ConditionFalse(rsp, "FunctionSuccess", "InternalError").
 		WithMessage(msg).
@@ -297,11 +302,11 @@ type builderAdapter[XR any, Defaults any, Observed runtime.Object, Desired runti
 	builder Builder[XR, Defaults, Observed, Desired]
 }
 
-func (adapter *builderAdapter[XR, Defaults, Observed, Desired]) condition() string {
+func (adapter *builderAdapter[XR, Defaults, Observed, Desired]) condition() string { //nolint:unused // satisfies internalBuilder interface
 	return adapter.builder.Condition()
 }
 
-func (adapter *builderAdapter[XR, Defaults, Observed, Desired]) process(
+func (adapter *builderAdapter[XR, Defaults, Observed, Desired]) process( //nolint:unused // satisfies internalBuilder interface
 	context Context[XR, Defaults],
 	observedComposedResources map[resource.Name]resource.ObservedComposed,
 ) (*buildResult, error) {
@@ -431,7 +436,7 @@ func newDecodeTarget[T any]() T {
 	//
 	t := reflect.TypeOf((*T)(nil)).Elem()
 	if t.Kind() == reflect.Pointer {
-		return reflect.New(t.Elem()).Interface().(T)
+		return reflect.New(t.Elem()).Interface().(T) //nolint:forcetypeassert // type invariant guaranteed by generic constraint T
 		// reflection trick explained:
 		// A way to inspect and manipulate values at runtime, without knowing their type in advance
 		// 		Normal Go value → 42 (you can use it directly)

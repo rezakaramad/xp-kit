@@ -136,7 +136,7 @@ func ExtractTypeInfo(packagePath, group, typeName, version string) (*TypeInfo, e
 // 3. A replace directive in go.mod that points to a local path (e.g. "github.com/rezakaramad/some-lib" → "../some-lib")
 // 4. A dependency module in the Go module cache (e.g. "github.com/rezakaramad/some-lib" → "$GOPATH/pkg/mod/github.com/rezakaramad/some-lib@v1.2.3")
 // So the function tries 4 strategies in order.
-func findModuleDir(packagePath string) (string, error) {
+func findModuleDir(packagePath string) (string, error) { //nolint:gocognit // inherently complex: 4 resolution strategies with nested fallbacks
 	// Gives info about the currently running Go binary
 	buildInfo, ok := debug.ReadBuildInfo()
 	if ok {
@@ -203,7 +203,7 @@ func findModuleDir(packagePath string) (string, error) {
 		return "", fmt.Errorf("locating go.mod: %w", err)
 	}
 
-	gomodBytes, err := os.ReadFile(gomodPath)
+	gomodBytes, err := os.ReadFile(gomodPath) //nolint:gosec // path is resolved from go.mod, not user input
 	if err != nil {
 		return "", fmt.Errorf("reading go.mod: %w", err)
 	}
@@ -241,7 +241,7 @@ func findModuleDir(packagePath string) (string, error) {
 	// that is not a declared dependency of the binary being run (e.g. gen-xrd
 	// receiving a --package path that belongs to types/* which it never imports).
 	if workFile := goWorkFile(); workFile != "" {
-		workBytes, err := os.ReadFile(workFile)
+		workBytes, err := os.ReadFile(workFile) //nolint:gosec // path is resolved from go.work, not user input
 		if err == nil {
 			wf, err := modfile.ParseWork(workFile, workBytes, nil)
 			if err == nil {
@@ -252,7 +252,7 @@ func findModuleDir(packagePath string) (string, error) {
 						useDir = filepath.Join(workDir, useDir)
 					}
 					useGoMod := filepath.Join(useDir, "go.mod")
-					useGoModBytes, err := os.ReadFile(useGoMod)
+					useGoModBytes, err := os.ReadFile(useGoMod) //nolint:gosec // path is resolved from go.work use directive, not user input
 					if err != nil {
 						continue
 					}

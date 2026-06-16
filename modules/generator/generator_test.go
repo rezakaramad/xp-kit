@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	apiextensionsv2 "github.com/crossplane/crossplane/v2/apis/apiextensions/v2"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	apiextensionsv2 "github.com/crossplane/crossplane/v2/apis/apiextensions/v2"
 )
 
 const testPackagePath = "github.com/rezakaramad/crossplane-toolkit/modules/generator/testdata/xsimple"
@@ -71,14 +72,14 @@ func TestBuildCompositeResourceDefinition_Structure(t *testing.T) {
 		t.Fatalf("BuildCompositeResourceDefinition: %v", err)
 	}
 
-	if xrd.TypeMeta.APIVersion != "apiextensions.crossplane.io/v2" {
-		t.Errorf("unexpected APIVersion: %q", xrd.TypeMeta.APIVersion)
+	if xrd.APIVersion != "apiextensions.crossplane.io/v2" {
+		t.Errorf("unexpected APIVersion: %q", xrd.APIVersion)
 	}
-	if xrd.TypeMeta.Kind != "CompositeResourceDefinition" {
-		t.Errorf("unexpected Kind: %q", xrd.TypeMeta.Kind)
+	if xrd.Kind != "CompositeResourceDefinition" {
+		t.Errorf("unexpected Kind: %q", xrd.Kind)
 	}
-	if xrd.ObjectMeta.Name != "xsimples.test.example.org" {
-		t.Errorf("unexpected name: %q", xrd.ObjectMeta.Name)
+	if xrd.Name != "xsimples.test.example.org" {
+		t.Errorf("unexpected name: %q", xrd.Name)
 	}
 	if xrd.Spec.Group != "test.example.org" {
 		t.Errorf("unexpected group: %q", xrd.Spec.Group)
@@ -199,7 +200,7 @@ func TestBuildCompositeResourceDefinition_ValidationErrors(t *testing.T) {
 		{
 			name:    "empty Group",
 			input:   ResourceMeta{PackagePath: testPackagePath, TypeName: "XSimple"},
-			wantErr: "Group is required",
+			wantErr: "group is required",
 		},
 	}
 
@@ -232,8 +233,8 @@ func TestBuildCompositeResourceDefinition_ExplicitPlural(t *testing.T) {
 	if xrd.Spec.Names.Plural != "xsimpleresources" {
 		t.Errorf("expected plural %q, got %q", "xsimpleresources", xrd.Spec.Names.Plural)
 	}
-	if xrd.ObjectMeta.Name != "xsimpleresources.test.example.org" {
-		t.Errorf("expected name %q, got %q", "xsimpleresources.test.example.org", xrd.ObjectMeta.Name)
+	if xrd.Name != "xsimpleresources.test.example.org" {
+		t.Errorf("expected name %q, got %q", "xsimpleresources.test.example.org", xrd.Name)
 	}
 }
 

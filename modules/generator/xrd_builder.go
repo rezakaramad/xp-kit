@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"strings"
 
-	apiextensionsv2 "github.com/crossplane/crossplane/v2/apis/apiextensions/v2"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	apiextensionsv2 "github.com/crossplane/crossplane/v2/apis/apiextensions/v2"
 )
 
-// Contains the fields needed to generate a CompositeResourceDefinition.
+// ResourceMeta contains the fields needed to generate a CompositeResourceDefinition.
 type ResourceMeta struct {
 	PackagePath           string // Go package containing the type to be converted into an XRD
 	TypeName              string // Name of the Go type to be converted into an XRD
@@ -25,11 +26,10 @@ type ResourceMeta struct {
 	DefaultCompositionRef string // Name of the default Composition to use when none is specified on the XR
 }
 
-// It does the following things:
-//  1. Validates the required input
-//  2. Selects the XRD API version name, defaulting to "v1alpha1" if none is provided
-//  3. Asks ExtractTypeInfo to get the OpenAPI schema and additionalPrinterColumns for the specified Go type in one pass
-//  4. Takes only the 'spec' part of the schema (desired state) and wraps it in a top-level schema with 'spec' and 'status' properties.
+// BuildCompositeResourceDefinition constructs a Crossplane CompositeResourceDefinition from a ResourceMeta.
+// It validates required input, selects the XRD API version (defaulting to "v1alpha1"),
+// extracts the OpenAPI schema and additionalPrinterColumns from the Go type,
+// and wraps the spec schema in a top-level schema with 'spec' and 'status' properties.
 func BuildCompositeResourceDefinition(resource ResourceMeta) (*apiextensionsv2.CompositeResourceDefinition, error) {
 	if resource.PackagePath == "" {
 		return nil, fmt.Errorf("PackagePath is required")
@@ -38,7 +38,7 @@ func BuildCompositeResourceDefinition(resource ResourceMeta) (*apiextensionsv2.C
 		return nil, fmt.Errorf("TypeName is required")
 	}
 	if resource.Group == "" {
-		return nil, fmt.Errorf("Group is required")
+		return nil, fmt.Errorf("group is required")
 	}
 
 	version := resource.Version

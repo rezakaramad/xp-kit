@@ -1,10 +1,12 @@
+// Package runner provides a generic Crossplane function runner for managing composed resources.
 package runner
 
 import (
-	"github.com/crossplane/function-sdk-go/logging"
-	"github.com/crossplane/function-sdk-go/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/crossplane/function-sdk-go/logging"
+	"github.com/crossplane/function-sdk-go/resource"
 )
 
 // MetadataLabeler is implemented by any type that can produce Kubernetes-safe
@@ -83,6 +85,9 @@ func (c Context[XR, Defaults]) StampMetadata(obj metav1.Object) {
 // 	- Ready(ctx Context[XR, Defaults], observed Observed) bool: checks if the observed resource is ready. This is where you define the logic to determine if the child resource is in a ready state.
 // 	- Connection(ctx Context[XR, Defaults], observed Observed) map[string]string: extracts connection details from the observed resource. This is where you define how to get connection information (like endpoints, credentials, etc.) from the child resource.
 
+// Builder manages the lifecycle of a single composed resource within a composite resource.
+//
+//nolint:interfacebloat // this interface intentionally models the full lifecycle of a composed resource
 type Builder[XR any, Defaults any, Observed runtime.Object, Desired runtime.Object] interface {
 	// Condition returns the XR status condition type for this resource.
 	// The string is reported directly on the composite resource status.
