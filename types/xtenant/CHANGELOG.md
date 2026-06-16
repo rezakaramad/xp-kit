@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.1 (2026-06-16)
+
+
+### Features
+
+* add types/xtenant ([#50](https://github.com/rezakaramad/crossplane-toolkit/issues/50)) ([5f7bd8b](https://github.com/rezakaramad/crossplane-toolkit/commit/5f7bd8b512800957e93a86e77e2297bbdf149e8e))
+
 ## 0.0.1 (2026-06-15)
 
 

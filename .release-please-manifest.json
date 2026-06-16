@@ -4,5 +4,5 @@
   "modules/runner": "0.0.1",
   "modules/pdns": "0.0.1",
   "modules/nextinsight": "0.0.1",
-  "types/xtenant": "0.0.0"
+  "types/xtenant": "0.0.1"
 }
