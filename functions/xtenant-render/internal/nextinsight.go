@@ -4,7 +4,7 @@ import (
 	"context"
 	"maps"
 
-	"github.com/rezakaramad/crossplane-toolkit/modules/nextinsight"
+	"github.com/rezakaramad/xp-kit/modules/nextinsight"
 
 	"github.com/crossplane/function-sdk-go/resource/composed"
 )

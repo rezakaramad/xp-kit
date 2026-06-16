@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	validate "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-validate/internal"
+	validate "github.com/rezakaramad/xp-kit/functions/xtenant-validate/internal"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
 

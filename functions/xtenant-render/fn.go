@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"maps"
 
-	inputv1beta1 "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/input/v1beta1"
-	render "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/internal"
-	"github.com/rezakaramad/crossplane-toolkit/modules/nextinsight"
-	xtenant "github.com/rezakaramad/crossplane-toolkit/types/xtenant"
+	inputv1beta1 "github.com/rezakaramad/xp-kit/functions/xtenant-render/input/v1beta1"
+	render "github.com/rezakaramad/xp-kit/functions/xtenant-render/internal"
+	"github.com/rezakaramad/xp-kit/modules/nextinsight"
+	xtenant "github.com/rezakaramad/xp-kit/types/xtenant"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	xperrors "github.com/crossplane/crossplane-runtime/v2/pkg/errors"

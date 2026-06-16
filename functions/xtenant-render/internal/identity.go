@@ -3,7 +3,7 @@ package render
 import (
 	"fmt"
 
-	inputv1beta1 "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/input/v1beta1"
+	inputv1beta1 "github.com/rezakaramad/xp-kit/functions/xtenant-render/input/v1beta1"
 	groupsv1beta1 "github.com/upbound/provider-azuread/v2/apis/namespaced/groups/v1beta1"
 	usersv1beta1 "github.com/upbound/provider-azuread/v2/apis/namespaced/users/v1beta1"
 	"golang.org/x/text/cases"

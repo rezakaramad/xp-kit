@@ -1,7 +1,7 @@
 package validate
 
 import (
-	xtenant "github.com/rezakaramad/crossplane-toolkit/types/xtenant"
+	xtenant "github.com/rezakaramad/xp-kit/types/xtenant"
 
 	"github.com/crossplane/function-sdk-go/resource"
 )

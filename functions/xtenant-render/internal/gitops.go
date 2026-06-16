@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	argocdtypes "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/argocd"
-	inputv1beta1 "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-render/input/v1beta1"
+	argocdtypes "github.com/rezakaramad/xp-kit/functions/xtenant-render/argocd"
+	inputv1beta1 "github.com/rezakaramad/xp-kit/functions/xtenant-render/input/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 

@@ -168,14 +168,6 @@ github.com/prometheus/common v0.67.5 h1:pIgK94WWlQt1WLwAC5j2ynLaBRDiinoAb86HZHTU
 github.com/prometheus/common v0.67.5/go.mod h1:SjE/0MzDEEAyrdr5Gqc6G+sXI67maCxzaT3A2+HqjUw=
 github.com/prometheus/procfs v0.19.2 h1:zUMhqEW66Ex7OXIiDkll3tl9a1ZdilUOd/F6ZXw4Vws=
 github.com/prometheus/procfs v0.19.2/go.mod h1:M0aotyiemPhBCM0z5w87kL22CxfcH05ZpYlu+b4J7mw=
-github.com/rezakaramad/crossplane-toolkit/modules/gcpdns v0.0.1 h1:wv6nR37bV6iTDug2YUze2J4esC9ZmaEJZYV3BE7T4lQ=
-github.com/rezakaramad/crossplane-toolkit/modules/gcpdns v0.0.1/go.mod h1:OvNJKehPUFDTbtpUlrY3x4WVPACUHZRZ9fNJiakEnX8=
-github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.0.1 h1:cRYeSvQlwPvGBbmFrxYCKo45ye+vRFjJ7GQVKgo/Hco=
-github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.0.1/go.mod h1:GjSfZIG9SSd7rWS4UCOsMSm4H97P6SC6U5PmWobna3Y=
-github.com/rezakaramad/crossplane-toolkit/modules/pdns v0.0.1 h1:SOJ77yCT5yiOWQvu7LyjK8NVhDk/ViX0pkt/xuj85v0=
-github.com/rezakaramad/crossplane-toolkit/modules/pdns v0.0.1/go.mod h1:6G2kZJPKDjbWW+v7B+9l8+HMRkiZ9XhFKLbe/bG1jrY=
-github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.0.1 h1:hgpmENROMkmdBBGko8LJB1wURXds8x+zPKTvaFlDX0M=
-github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.0.1/go.mod h1:oPmMyPi9UoH6F04K2Eh1fb+wez2GSBq1iZeWieC/xdA=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

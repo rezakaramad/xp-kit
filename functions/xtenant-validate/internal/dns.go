@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	inputv1beta1 "github.com/rezakaramad/crossplane-toolkit/functions/xtenant-validate/input/v1beta1"
+	inputv1beta1 "github.com/rezakaramad/xp-kit/functions/xtenant-validate/input/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"

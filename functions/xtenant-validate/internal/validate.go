@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rezakaramad/crossplane-toolkit/modules/nextinsight"
-	xtenant "github.com/rezakaramad/crossplane-toolkit/types/xtenant"
+	"github.com/rezakaramad/xp-kit/modules/nextinsight"
+	xtenant "github.com/rezakaramad/xp-kit/types/xtenant"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 

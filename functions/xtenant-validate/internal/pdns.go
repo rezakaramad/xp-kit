@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/rezakaramad/crossplane-toolkit/modules/pdns"
+	"github.com/rezakaramad/xp-kit/modules/pdns"
 )
 
 // pdnsAdapter bridges pdns.Client to the local DNSClient interface.

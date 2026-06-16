@@ -1,4 +1,4 @@
-module github.com/rezakaramad/crossplane-toolkit/types/xtenant
+module github.com/rezakaramad/xp-kit/types/xtenant
 
 go 1.26.4
 

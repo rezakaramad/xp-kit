@@ -1,4 +1,4 @@
-module github.com/rezakaramad/crossplane-toolkit/functions/xtenant-validate
+module github.com/rezakaramad/xp-kit/functions/xtenant-validate
 
 go 1.26.4
 
@@ -7,16 +7,23 @@ require (
 	github.com/crossplane/crossplane-runtime/v2 v2.2.1
 	github.com/crossplane/function-sdk-go v0.6.2
 	github.com/google/go-cmp v0.7.0
-	github.com/rezakaramad/crossplane-toolkit/modules/gcpdns v0.0.1
-	github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.0.1
-	github.com/rezakaramad/crossplane-toolkit/modules/pdns v0.0.1
-	github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.0.1
+	github.com/rezakaramad/xp-kit/modules/gcpdns v0.0.1
+	github.com/rezakaramad/xp-kit/modules/nextinsight v0.0.1
+	github.com/rezakaramad/xp-kit/modules/pdns v0.0.1
+	github.com/rezakaramad/xp-kit/types/xtenant v0.0.1
 	google.golang.org/api v0.231.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 	k8s.io/api v0.35.2
 	k8s.io/apimachinery v0.36.0
 	k8s.io/client-go v0.35.2
 	sigs.k8s.io/controller-runtime v0.23.1
+)
+
+replace (
+	github.com/rezakaramad/xp-kit/modules/gcpdns => ../../modules/gcpdns
+	github.com/rezakaramad/xp-kit/modules/nextinsight => ../../modules/nextinsight
+	github.com/rezakaramad/xp-kit/modules/pdns => ../../modules/pdns
+	github.com/rezakaramad/xp-kit/types/xtenant => ../../types/xtenant
 )
 
 require (
