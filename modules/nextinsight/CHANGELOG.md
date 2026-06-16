@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.1 (2026-06-16)
+
+
+### Features
+
+* add modules/nextinsight ([#47](https://github.com/rezakaramad/crossplane-toolkit/issues/47)) ([a9ca9b3](https://github.com/rezakaramad/crossplane-toolkit/commit/a9ca9b326c6f6c9c5c2e62bc1049929ca7213878))
+
 ## 0.0.1 (2026-06-15)
 
 
