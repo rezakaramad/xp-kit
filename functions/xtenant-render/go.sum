@@ -240,10 +240,10 @@ github.com/prometheus/common v0.67.5 h1:pIgK94WWlQt1WLwAC5j2ynLaBRDiinoAb86HZHTU
 github.com/prometheus/common v0.67.5/go.mod h1:SjE/0MzDEEAyrdr5Gqc6G+sXI67maCxzaT3A2+HqjUw=
 github.com/prometheus/procfs v0.19.2 h1:zUMhqEW66Ex7OXIiDkll3tl9a1ZdilUOd/F6ZXw4Vws=
 github.com/prometheus/procfs v0.19.2/go.mod h1:M0aotyiemPhBCM0z5w87kL22CxfcH05ZpYlu+b4J7mw=
-github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.0 h1:Dpm8Puk3d6BFMOSAmidhIjPBazLt4ULHIzjV+U7IahY=
-github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.1.0/go.mod h1:ahugS/DlIuj/ZEuoCBlBXDzC4nY0+4rbNP5ffD778b4=
-github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.1.0 h1:S5uei9KbYf4Nq4EDjvngIqAOt6zxeiuABDEjjheamoY=
-github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.1.0/go.mod h1:oPmMyPi9UoH6F04K2Eh1fb+wez2GSBq1iZeWieC/xdA=
+github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.0.1 h1:sAPnt1S0X7oF8fFPQ6nWQ3X+fRKJzYJBl31CUeJMXMs=
+github.com/rezakaramad/crossplane-toolkit/modules/nextinsight v0.0.1/go.mod h1:ahugS/DlIuj/ZEuoCBlBXDzC4nY0+4rbNP5ffD778b4=
+github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.0.1 h1:hgpmENROMkmdBBGko8LJB1wURXds8x+zPKTvaFlDX0M=
+github.com/rezakaramad/crossplane-toolkit/types/xtenant v0.0.1/go.mod h1:oPmMyPi9UoH6F04K2Eh1fb+wez2GSBq1iZeWieC/xdA=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
