@@ -11,6 +11,20 @@
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "initial-version": "0.0.1"
+    },
+    "modules/generator": {
+      "component": "modules/generator",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
+    },
+    "modules/runner": {
+      "component": "modules/runner",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.0.1"
     }
   }
 }
