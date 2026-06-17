@@ -242,8 +242,8 @@ github.com/prometheus/procfs v0.19.2 h1:zUMhqEW66Ex7OXIiDkll3tl9a1ZdilUOd/F6ZXw4
 github.com/prometheus/procfs v0.19.2/go.mod h1:M0aotyiemPhBCM0z5w87kL22CxfcH05ZpYlu+b4J7mw=
 github.com/rezakaramad/xp-kit/modules/nextinsight v0.1.1 h1:kr96+VLsOxLQJT47rv189LSEIw2k/OWJsmzUR8gR0LE=
 github.com/rezakaramad/xp-kit/modules/nextinsight v0.1.1/go.mod h1:TwQs8Tmf2CDKGUshLhbhafYxMyG6y7JZ8f+xF7rEZgE=
-github.com/rezakaramad/xp-kit/types/xtenant v0.1.1 h1:t7XyoljVvk9D/vLf85SagRPjDDqezOB8nLqMHzhYbzg=
-github.com/rezakaramad/xp-kit/types/xtenant v0.1.1/go.mod h1:16ju3bzU6DAUBdtjh2ryR6tZE+zUu67RcMXiGkFWg+k=
+github.com/rezakaramad/xp-kit/types/xtenant v0.1.2 h1:bPD2VlHWEdxm2XkHAwVYzpqYp0In2jOCG7vb270rkIU=
+github.com/rezakaramad/xp-kit/types/xtenant v0.1.2/go.mod h1:16ju3bzU6DAUBdtjh2ryR6tZE+zUu67RcMXiGkFWg+k=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
