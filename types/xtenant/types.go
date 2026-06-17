@@ -29,7 +29,7 @@ const (
 // +kubebuilder:validation:XValidation:rule="oldSelf == null || !oldSelf.spec.approved || self.spec.approved",message="spec.approved cannot be set back to false once approved"
 // +kubebuilder:printcolumn:name="Tenant",type="string",JSONPath=".metadata.name"
 // +kubebuilder:printcolumn:name="DNS",type="string",JSONPath=".spec.dnsName"
-// +kubebuilder:printcolumn:name="Team",type="string",JSONPath=".spec.teamID"
+// +kubebuilder:printcolumn:name="Team",type="string",JSONPath=".spec.teamId"
 // +kubebuilder:printcolumn:name="Resources",type="integer",JSONPath=".status.rendered.resources"
 // +kubebuilder:printcolumn:name="Approved",type="boolean",JSONPath=".spec.approved"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase"
@@ -81,7 +81,7 @@ type XTenantSpec struct { //nolint:revive // XTenant prefix is intentional for c
 	//
 	// +kubebuilder:validation:MaxLength=128
 	// +optional
-	TeamID string `json:"teamID,omitempty"`
+	TeamID string `json:"teamId,omitempty"`
 }
 
 // ArgoCDSpec contains ArgoCD-specific configuration for the tenant.
