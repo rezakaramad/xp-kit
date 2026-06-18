@@ -61,6 +61,25 @@ func TestCheckDNSAvailable_Taken(t *testing.T) {
 	}
 }
 
+func TestCheckDNSAvailable_TakenBySubdomain(t *testing.T) {
+	c, _ := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"rrsets": []map[string]any{
+				{"name": "app1.pay.example.com."},
+			},
+		})
+	}))
+
+	res, err := c.CheckDNSAvailable(context.Background(), "pay.example.com.")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if res.Available {
+		t.Error("expected Available=false when subdomain exists, got true")
+	}
+}
+
 func TestCheckDNSAvailable_ZoneNotFound(t *testing.T) {
 	c, _ := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

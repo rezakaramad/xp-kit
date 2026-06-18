@@ -3,9 +3,9 @@
 // It exposes a Client interface so callers can inject a fake in tests instead
 // of hitting the live API.
 //
-// This implementation assumes tenant DNS records live in the registrable root
-// zone (for example, "rezakara.demo."). It does not discover the most specific
-// delegated zone such as "dev.rezakara.demo.".
+// The zone to query must be provided explicitly via New(). A tenant name is
+// considered taken if any record in the zone equals or is a subdomain of
+// "{dnsName}.{zone}" (e.g. "app1.pay.wl.rezakara.demo." marks "pay" as taken).
 package pdns
 
 import (
@@ -88,11 +88,14 @@ func (c *pdnsClient) CheckDNSAvailable(ctx context.Context, fqdn string) (Result
 		return Result{}, fmt.Errorf("decode pdns response: %w", err)
 	}
 
+	// A tenant is considered taken if any record equals or is a subdomain of the fqdn.
+	// e.g. fqdn=pay.wl.rezakara.demo. matches app1.pay.wl.rezakara.demo.
+	subdomainSuffix := "." + fqdn
 	for _, rr := range zoneData.RRsets {
-		if rr.Name == fqdn {
+		if rr.Name == fqdn || strings.HasSuffix(rr.Name, subdomainSuffix) {
 			return Result{
 				Available: false,
-				Reason:    fmt.Sprintf("dns %q already exists", fqdn),
+				Reason:    fmt.Sprintf("dns %q already in use", fqdn),
 			}, nil
 		}
 	}

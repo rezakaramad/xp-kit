@@ -40,7 +40,7 @@ func Validate(ctx context.Context, t xtenant.XTenant, d Deps) *ValidationError {
 		}
 	}
 
-	fqdn := fmt.Sprintf("*.%s.%s.", t.Spec.DNSName, strings.TrimSuffix(d.ReferenceEnvironmentDomain, "."))
+	fqdn := fmt.Sprintf("%s.%s.", t.Spec.DNSName, strings.TrimSuffix(d.ReferenceEnvironmentDomain, "."))
 
 	res, err := d.DNS.CheckDNSAvailable(ctx, fqdn)
 	if err != nil {
