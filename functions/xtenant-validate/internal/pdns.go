@@ -21,6 +21,6 @@ func (a *pdnsAdapter) CheckDNSAvailable(ctx context.Context, fqdn string) (DNSAv
 }
 
 // NewPowerDNSClient creates a DNSClient backed by the PowerDNS HTTP API.
-func NewPowerDNSClient(baseURL, apiKey string, httpClient *http.Client) DNSClient {
-	return &pdnsAdapter{pdns.New(baseURL, apiKey, httpClient)}
+func NewPowerDNSClient(baseURL, apiKey, zone string, httpClient *http.Client) DNSClient {
+	return &pdnsAdapter{pdns.New(baseURL, apiKey, zone, httpClient)}
 }

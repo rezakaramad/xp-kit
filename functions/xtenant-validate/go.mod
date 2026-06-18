@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/rezakaramad/xp-kit/modules/gcpdns v0.1.1
 	github.com/rezakaramad/xp-kit/modules/nextinsight v0.1.1
-	github.com/rezakaramad/xp-kit/modules/pdns v0.1.1
+	github.com/rezakaramad/xp-kit/modules/pdns v0.1.2
 	github.com/rezakaramad/xp-kit/types/xtenant v0.1.2
 	google.golang.org/api v0.231.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af

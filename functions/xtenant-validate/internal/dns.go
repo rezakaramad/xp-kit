@@ -52,6 +52,7 @@ func BuildDNSClient(ctx context.Context, cfg inputv1beta1.DNSInput, kube ctrlcli
 		return NewPowerDNSClient(
 			cfg.APIURL,
 			apiKey,
+			cfg.ReferenceEnvironmentDomain,
 			&http.Client{Timeout: 5 * time.Second},
 		), nil
 
