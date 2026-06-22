@@ -131,6 +131,13 @@ func (r *Runner[XR, Input]) Run(
 					WithMessage(err.Error()).
 					TargetComposite()
 			}
+			// ConditionError signals "set condition and continue" — other composers
+			// may still contribute desired resources (e.g. principal composers).
+			// Only stop for unexpected errors.
+			var ce *ConditionError
+			if errors.As(err, &ce) {
+				continue
+			}
 			return rsp, nil
 		}
 
@@ -142,7 +149,10 @@ func (r *Runner[XR, Input]) Run(
 		condType := composer.conditionType()
 		if condType != "" {
 			if result.ready {
-				response.ConditionTrue(rsp, condType, "Available").TargetComposite()
+				c := response.ConditionTrue(rsp, condType, "Available").TargetComposite()
+				if result.message != "" {
+					c.WithMessage(result.message)
+				}
 			} else {
 				response.ConditionFalse(rsp, condType, "Unavailable").
 					WithMessage(fmt.Sprintf("%s is not yet available", condType)).
@@ -251,6 +261,7 @@ type buildResult struct {
 	name              resource.Name
 	desired           *resource.DesiredComposed
 	ready             bool
+	message           string // optional message for the ConditionTrue call
 	connectionDetails map[string]string
 }
 
@@ -302,10 +313,23 @@ func (a *composerAdapter[XR, Input, Observed, Desired]) process( //nolint:unused
 		readyState = resource.ReadyTrue
 	}
 
+	// resultMessager is an optional interface that composers may implement to
+	// attach a message to the ConditionTrue event when their resource is ready.
+	type resultMessager interface {
+		ReadyMessage(ctx Context[XR, Input]) string
+	}
+	var msg string
+	if ready {
+		if m, ok := any(a.composer).(resultMessager); ok {
+			msg = m.ReadyMessage(ctx)
+		}
+	}
+
 	return &buildResult{
 		name:              name,
 		desired:           &resource.DesiredComposed{Resource: composedObj, Ready: readyState},
 		ready:             ready,
+		message:           msg,
 		connectionDetails: a.composer.ConnectionDetails(ctx, obs),
 	}, nil
 }
