@@ -127,7 +127,7 @@ func (r *Runner[XR, Input]) Run(
 		result, err := composer.process(fnCtx)
 		if err != nil {
 			if condType := composer.conditionType(); condType != "" {
-				response.ConditionFalse(rsp, condType, "CompositionError").
+				response.ConditionFalse(rsp, condType, conditionReason(err)).
 					WithMessage(err.Error()).
 					TargetComposite()
 			}

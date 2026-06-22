@@ -21,3 +21,33 @@ func Fatal(rsp *fnv1.RunFunctionResponse, msg string, err error) (*fnv1.RunFunct
 
 	return rsp, nil
 }
+
+// ConditionError is an error that carries a custom condition reason.
+// When a Compose method returns a ConditionError, the runner uses its Reason
+// as the condition reason instead of the default "CompositionError".
+//
+// Use NewConditionError to create one:
+//
+//	return nil, runner.NewConditionError("WaitingForPrincipalObjectID", "principal not yet available")
+type ConditionError struct {
+	reason  string
+	message string
+}
+
+// NewConditionError creates a ConditionError with the given reason and message.
+func NewConditionError(reason, message string) *ConditionError {
+	return &ConditionError{reason: reason, message: message}
+}
+
+func (e *ConditionError) Error() string  { return e.message }
+func (e *ConditionError) Reason() string { return e.reason }
+
+// conditionReason extracts the condition reason from an error.
+// Returns "CompositionError" for plain errors, or the custom reason for ConditionError.
+func conditionReason(err error) string {
+	var ce *ConditionError
+	if errors.As(err, &ce) {
+		return ce.Reason()
+	}
+	return "CompositionError"
+}
