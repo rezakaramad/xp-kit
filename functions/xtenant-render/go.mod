@@ -10,6 +10,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/rezakaramad/crosskit/modules/nextinsight v0.1.2
+	github.com/rezakaramad/crosskit/modules/runner v0.1.5
 	github.com/rezakaramad/crosskit/types/xtenant v0.1.3
 	github.com/upbound/provider-azuread/v2 v2.2.1
 	golang.org/x/text v0.37.0

@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/crossplane/function-sdk-go/errors"
+	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
+	"github.com/crossplane/function-sdk-go/response"
 	"github.com/google/uuid"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -64,4 +67,15 @@ func toComposed(obj any) *composed.Unstructured {
 		panic(fmt.Sprintf("BUG: cannot convert typed resource to unstructured: %v", err))
 	}
 	return &composed.Unstructured{Unstructured: unstructured.Unstructured{Object: m}}
+}
+
+// Fatal marks the response as failed and returns it.
+// Use it in RunFunction to short-circuit on unrecoverable errors.
+func Fatal(rsp *fnv1.RunFunctionResponse, err error, msg string) (*fnv1.RunFunctionResponse, error) {
+	if err != nil {
+		response.Fatal(rsp, errors.Wrap(err, msg))
+	} else {
+		response.Fatal(rsp, errors.New(msg))
+	}
+	return rsp, nil
 }
