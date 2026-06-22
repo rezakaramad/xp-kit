@@ -109,6 +109,7 @@ func (r *Runner[XR, Input]) Run(
 
 	// ── 5. Build Context ─────────────────────────────────────────────────────
 	fnCtx := Context[XR, Input]{
+		Ctx:      ctx,
 		XR:       xr,
 		Input:    input,
 		Observed: observedComposed,
@@ -125,9 +126,11 @@ func (r *Runner[XR, Input]) Run(
 	for _, composer := range r.composers {
 		result, err := composer.process(fnCtx)
 		if err != nil {
-			response.ConditionFalse(rsp, composer.conditionType(), "CompositionError").
-				WithMessage(err.Error()).
-				TargetComposite()
+			if condType := composer.conditionType(); condType != "" {
+				response.ConditionFalse(rsp, condType, "CompositionError").
+					WithMessage(err.Error()).
+					TargetComposite()
+			}
 			return rsp, nil
 		}
 
@@ -136,12 +139,15 @@ func (r *Runner[XR, Input]) Run(
 			continue
 		}
 
-		if result.ready {
-			response.ConditionTrue(rsp, composer.conditionType(), "Available").TargetComposite()
-		} else {
-			response.ConditionFalse(rsp, composer.conditionType(), "Unavailable").
-				WithMessage(fmt.Sprintf("%s is not yet available", composer.conditionType())).
-				TargetComposite()
+		condType := composer.conditionType()
+		if condType != "" {
+			if result.ready {
+				response.ConditionTrue(rsp, condType, "Available").TargetComposite()
+			} else {
+				response.ConditionFalse(rsp, condType, "Unavailable").
+					WithMessage(fmt.Sprintf("%s is not yet available", condType)).
+					TargetComposite()
+			}
 		}
 
 		fnCtx.Log.Info("Adding desired composer resource", "name", result.name)
