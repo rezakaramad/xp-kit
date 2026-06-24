@@ -7,7 +7,7 @@ require (
 	github.com/crossplane/crossplane-runtime/v2 v2.3.1
 	github.com/crossplane/function-sdk-go v0.6.2
 	github.com/google/uuid v1.6.0
-	github.com/rezakaramad/crosskit/types/xtenantentra v0.0.0-00010101000000-000000000000
+	github.com/rezakaramad/crosskit/types/xtenantentra v0.1.0
 	github.com/upbound/provider-azuread/v2 v2.2.1
 	k8s.io/api v0.36.2
 	k8s.io/apimachinery v0.36.2
@@ -87,8 +87,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.68.1 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
-	github.com/rezakaramad/crosskit/modules/composer v0.0.0
-	github.com/rezakaramad/crosskit/types/xtenant v0.1.3
+	github.com/rezakaramad/crosskit/modules/composer v0.1.0
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
@@ -143,7 +142,3 @@ require (
 // crossplane-runtime at v2.2.1 because v2.3.x removed apis/common/{v1,v2},
 // which upjet-generated providers (incl. provider-azuread) still import.
 replace github.com/crossplane/crossplane-runtime/v2 => github.com/crossplane/crossplane-runtime/v2 v2.2.1
-
-replace github.com/rezakaramad/crosskit/modules/composer => ../../modules/composer
-
-replace github.com/rezakaramad/crosskit/types/xtenantentra => ../../types/xtenantentra
