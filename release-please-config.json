@@ -19,12 +19,26 @@
       "bump-minor-pre-major": true,
       "initial-version": "0.0.1"
     },
-    "modules/runner": {
-      "component": "modules/runner",
+    "modules/composer": {
+      "component": "modules/composer",
       "release-type": "go",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
-      "initial-version": "0.0.1"
+      "initial-version": "0.1.0"
+    },
+    "types/xtenantentra": {
+      "component": "types/xtenantentra",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.1.0"
+    },
+    "functions/xtenantentra": {
+      "component": "functions/xtenantentra",
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "initial-version": "0.1.0"
     },
     "modules/pdns": {
       "component": "modules/pdns",
@@ -35,13 +49,6 @@
     },
     "modules/nextinsight": {
       "component": "modules/nextinsight",
-      "release-type": "go",
-      "changelog-path": "CHANGELOG.md",
-      "bump-minor-pre-major": true,
-      "initial-version": "0.0.1"
-    },
-    "types/xtenant": {
-      "component": "types/xtenant",
       "release-type": "go",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
